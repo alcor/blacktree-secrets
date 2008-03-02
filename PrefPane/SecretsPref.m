@@ -19,7 +19,10 @@
 
 @interface SecretsPref ()
 - (NSData *)downloadData;
-- (id)getUserDefaultsValueForKeyPath:(NSString *)path bundle:(CFStringRef)bundle user:(CFStringRef)user host:(CFStringRef)host;
+- (id)getUserDefaultsValueForKey:(NSString *)path bundle:(NSString *)bundle user:(CFStringRef)user host:(CFStringRef)host asKeyPath:(BOOL)asKeyPath;
+
+- (id)getUserDefaultsValueForInfo:(NSDictionary *)thisInfo;
+
 - (void)updateEntries;
 @end
 
@@ -91,10 +94,10 @@
 }
 
 - (void)awakeFromNib {
-	[categoriesController addObserver:self
-                         forKeyPath:@"selectedObjects"
-                            options:0
-                            context:nil];
+//	[categoriesController addObserver:self
+//                         forKeyPath:@"selectedObjects"
+//                            options:0
+//                            context:nil];
   
   [entriesController setSortDescriptors:[NSArray arrayWithObjects:
                                          [NSSortDescriptor descriptorWithKey:@"top_secret"
@@ -200,17 +203,19 @@
   self.entries = array;
   if (!self.bundles) self.bundles = [NSMutableDictionary dictionary];
   
-  NSMutableDictionary *global = [NSDictionary dictionaryWithObjectsAndKeys:
-                                 @"System", @"text",
-                                 [NSImage imageNamed:@"NSApplicationIcon"] , @"image",
-                                 
-                                 
-                                 [NSPredicate predicateWithFormat:@"display_bundle like %@",  @".GlobalPreferences"], @"predicate", 
-                                 @".GlobalPreferences", @"display_bundle",
-                                 [NSMutableArray array] , @"contents",
-                                 nil];
+  NSString *imagePath = [[NSBundle bundleForClass:[self class]] pathForImageResource:@"Application"];
+  NSImage *image = [[[NSImage alloc] initWithContentsOfFile:imagePath] autorelease];
   
-  [bundles setValue:global forKey:@".GlobalPreferences"];
+  NSMutableDictionary *topSecrets = [NSDictionary dictionaryWithObjectsAndKeys:
+                                     @"TOP SECRETS", @"text",
+                                     [NSNumber numberWithInt:3], @"rank", 
+                                     image , @"image", 
+                                     [NSNumber numberWithBool:YES] , @"bold",
+                                     [NSPredicate predicateWithFormat:@"top_secret == TRUE"],  @"predicate", 
+                                     nil];
+  
+  [bundles setValue:topSecrets forKey:@"TOP_SECRETS"];
+
   
   NSMutableDictionary *all = [NSDictionary dictionaryWithObjectsAndKeys:
                               @"All Secrets", @"text",
@@ -220,18 +225,22 @@
   
   [bundles setValue:all forKey:@"ALL"];
     
-  NSString *imagePath = [[NSBundle bundleForClass:[self class]] pathForImageResource:@"Application"];
-  NSImage *image = [[[NSImage alloc] initWithContentsOfFile:imagePath] autorelease];
   
-  NSMutableDictionary *topSecrets = [NSDictionary dictionaryWithObjectsAndKeys:
-                                     @"TOP SECRETS", @"text",
-                                     [NSNumber numberWithInt:1], @"rank", 
-                                     image , @"image", 
-                                     [NSNumber numberWithBool:YES] , @"bold",
-                                     [NSPredicate predicateWithFormat:@"top_secret == TRUE"],  @"predicate", 
-                                     nil];
+  NSMutableDictionary *global = [NSDictionary dictionaryWithObjectsAndKeys:
+                                 @"Systemwide", @"text",
+                                 [NSImage imageNamed:@"NSApplicationIcon"] , @"image",
+                                 
+                                 [NSNumber numberWithInt:1], @"rank", 
+                                 
+                                 [NSPredicate predicateWithFormat:@"display_bundle like %@",  @".GlobalPreferences"], @"predicate", 
+                                 @".GlobalPreferences", @"display_bundle",
+                                 [NSMutableArray array] , @"contents",
+                                 nil];
   
-  [bundles setValue:topSecrets forKey:@"TOP_SECRETS"];
+  [bundles setValue:global forKey:@".GlobalPreferences"];
+  
+  
+	[self setCategories:[bundles allValues]];
   
   NSWorkspace *workspace = [NSWorkspace sharedWorkspace];
   
@@ -319,8 +328,9 @@
 
 - (float) tableView:(NSTableView *)tableView heightOfRow:(int)row {
   if (tableView == categoriesTable) return [tableView rowHeight];
-	//id thisInfo = [[entriesController arrangedObjects] objectAtIndex:row];
-	NSTableColumn *column = [tableView tableColumnWithIdentifier:@"title"];
+
+	
+  NSTableColumn *column = [tableView tableColumnWithIdentifier:@"title"];
   NSCell *cell = [tableView preparedCellAtColumn:[tableView columnWithIdentifier:@"title"] row:row];
   //  NSLog(@"cell %@", cell);
   //	NSString *title = [thisInfo objectForKey:@"title"];
@@ -406,19 +416,9 @@
   if ([[tableColumn identifier] isEqualToString:@"title"]) {
     
     id thisInfo = [[entriesController arrangedObjects] objectAtIndex:row]; 	
-		NSString *bundle = [thisInfo objectForKey:@"bundle"];
-    if ([bundle isEqualToString:@".GlobalPreferences"]) bundle = (NSString *)kCFPreferencesAnyApplication;
     
-    NSString *keypath = [thisInfo objectForKey:@"keypath"];       
-    CFStringRef user = kCFPreferencesCurrentUser;
-    CFStringRef host = kCFPreferencesAnyHost;
-    if ([[thisInfo objectForKey:@"set_for_all_users"] boolValue]) user = kCFPreferencesAnyUser;
-    if ([[thisInfo objectForKey:@"current_host_only"] boolValue]) host = kCFPreferencesCurrentHost;
     
-    id value = [self getUserDefaultsValueForKeyPath:keypath
-                                             bundle:(CFStringRef)bundle 
-                                               user:user
-                                               host:host];
+    id value = [self getUserDefaultsValueForInfo:thisInfo];
     
     
     NSCell *cell = [tableColumn dataCell];
@@ -493,23 +493,34 @@
 # pragma mark -
 # pragma mark Defaults Getters and Setters
 
-- (id)getUserDefaultsValueForKeyPath:(NSString *)path bundle:(CFStringRef)bundle user:(CFStringRef)user host:(CFStringRef)host {
+- (id)getUserDefaultsValueForKey:(NSString *)path bundle:(NSString *)bundle user:(CFStringRef)user host:(CFStringRef)host asKeyPath:(BOOL)asKeyPath{
   NSObject *value = nil;
   @try {
-    NSArray *components = [path componentsSeparatedByString:@"."];
+    
+    
+    if ([bundle rangeOfString:@"$HOME"].location != NSNotFound)
+      bundle = [bundle stringByReplacingOccurrencesOfString:@"$HOME" withString:NSHomeDirectory()];
+    
     NSString *keypath = nil;
-    NSString *key = [components objectAtIndex:0];
-    if ([components count] > 1) 
-      keypath = [[components subarrayWithRange:NSMakeRange(1, [components count] - 1)] componentsJoinedByString:@"."];
+    NSString *key = path;
+    if (asKeyPath) {
+      NSArray *components = [path componentsSeparatedByString:@"."];
+      if ([components count] > 1) {
+        key = [components objectAtIndex:0];
+        keypath = [[components subarrayWithRange:NSMakeRange(1, [components count] - 1)] componentsJoinedByString:@"."];
+      }
+    }
     if (!key) return nil;
     value = (NSObject *)CFPreferencesCopyValue((CFStringRef)key, (CFStringRef)bundle, user, host);
     [value autorelease];
     
     if (keypath) value = [value valueForKeyPath:keypath];
-    
+    //if (keypath)
+    //NSLog(@"get %@ > %@ > %@", bundle, key, keypath ? keypath : @"" );
   }
   
   @catch (NSException *e) {
+    NSLog(@"unable to get value: %@", e);
     return nil;
   }
   return value;
@@ -517,19 +528,24 @@
 
 
 
-- (void)setUserDefaultsValue:(id)value forKeyPath:(NSString *)path bundle:(CFStringRef)bundle user:(CFStringRef)user host:(CFStringRef)host {
+- (void)setUserDefaultsValue:(id)value forKey:(NSString *)path bundle:(NSString *)bundle user:(CFStringRef)user host:(CFStringRef)host asKeyPath:(BOOL)asKeyPath{
   
-  if ([path rangeOfString:@"$HOME"].location != NSNotFound)
-    path = [path stringByReplacingOccurrencesOfString:@"$HOME" withString:NSHomeDirectory()];
-  
-  
-  
-  NSArray *components = [path componentsSeparatedByString:@"."];
+  if ([bundle rangeOfString:@"$HOME"].location != NSNotFound)
+    bundle = [bundle stringByReplacingOccurrencesOfString:@"$HOME" withString:NSHomeDirectory()];
+
   NSString *keypath = nil;
-  NSString *key = [components objectAtIndex:0];
-  if ([components count] > 1) 
-    keypath = [[components subarrayWithRange:NSMakeRange(1, [components count] - 1)] componentsJoinedByString:@"."];
+  NSString *key = path;
   
+  if (asKeyPath) {
+    NSArray *components = [path componentsSeparatedByString:@"."];
+    if ([components count] > 1) {
+      key = [components objectAtIndex:0];
+      keypath = [[components subarrayWithRange:NSMakeRange(1, [components count] - 1)] componentsJoinedByString:@"."];
+    }
+  }
+
+  NSLog(@"defaults write %@ %@ %@ %@", bundle, key, keypath ? keypath : @"", value );
+ 
   if (keypath) { // Handle dictionary subpath
     NSDictionary *dictValue = (NSDictionary *)CFPreferencesCopyValue((CFStringRef)key, (CFStringRef)bundle, user, host);
     [dictValue autorelease];
@@ -540,10 +556,10 @@
     [dictValue setValue:value forKeyPath:keypath];
     value = dictValue;
   }
-  //NSLog(@"set %@ %@ %@ %@", key, value, bundle, user, host);
+  
   CFPreferencesSetValue((CFStringRef) key, value, (CFStringRef)bundle, user, host);
   CFPreferencesSynchronize((CFStringRef) bundle, user, host);  
-  
+
   if (value)
     [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"com.blacktree.Secret" object:(NSString *)bundle userInfo:[NSDictionary dictionaryWithObject:value forKey:path]];
   
@@ -563,11 +579,13 @@
   CFStringRef host = kCFPreferencesAnyHost;
   if ([[thisInfo objectForKey:@"set_for_all_users"] boolValue]) user = kCFPreferencesAnyUser;
   if ([[thisInfo objectForKey:@"current_host_only"] boolValue]) host = kCFPreferencesCurrentHost;
-  
-  return [self getUserDefaultsValueForKeyPath:keypath
-                                       bundle:(CFStringRef)bundle 
+  BOOL isKeypath = [[thisInfo objectForKey:@"is_keypath"] boolValue];
+  return [self getUserDefaultsValueForKey:keypath
+                                   bundle:bundle 
                                          user:user
-                                         host:host];
+                                         host:host
+                                asKeyPath:isKeypath
+  ];
   
 }
 
@@ -580,12 +598,13 @@
   
   NSString *keypath = [thisInfo objectForKey:@"keypath"];
   NSString *bundle = [thisInfo objectForKey:@"bundle"];
-  
+    BOOL isKeypath = [[thisInfo objectForKey:@"is_keypath"] boolValue];
   [self setUserDefaultsValue:value
-                  forKeyPath:keypath
-                      bundle:(CFStringRef)bundle 
+                  forKey:keypath
+                      bundle:bundle 
                         user:user
-                        host:host];
+                        host:host
+                   asKeyPath:isKeypath];
   
 }
 
@@ -707,42 +726,6 @@
   
 }
 
-- (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context {
-  //[self updateCategory];
-}
-
-//- (NSArray *)categories { return [[categories retain] autorelease];  }
-//- (void)setCategories: (NSArray *)newCategories
-//{
-//  if (categories != newCategories) {
-//    [categories release];
-//    categories = [newCategories retain];
-//  }
-//}
-//
-//
-//- (NSArray *)entries { return [[entries retain] autorelease];  }
-//- (void)setEntries: (NSArray *)newEntries
-//{
-//  if (entries != newEntries) {
-//    [entries release];
-//    entries = [newEntries retain];
-//    //NSLog(@"entries %@", entries);
-//  }
-//}
-//
-//
-//
-//- (NSDictionary *)currentEntry { return [[currentEntry retain] autorelease];  }
-//- (void)setCurrentEntry: (NSDictionary *)newCurrentEntry
-//{
-//  if (currentEntry != newCurrentEntry) {
-//    [currentEntry release];
-//    currentEntry = [newCurrentEntry retain];
-//  }
-//}
-// Load the image
-
 
 
 #pragma mark -
@@ -843,8 +826,6 @@
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
   [fetchData appendData:data];
 }
-
-
 
 - (void)dealloc
 {
