@@ -15,7 +15,7 @@
 	IBOutlet NSSplitView *splitView;
 	
 	NSArray *categories;
-	NSDictionary *bundles;
+	NSMutableDictionary *bundles;
 	NSArray *entries;
 	
   IBOutlet NSDictionary *sourcesDictionary;
@@ -35,16 +35,25 @@
   
   NSURLConnection *fetchConnection;
   NSMutableData   *fetchData;
+  NSPredicate *searchPredicate;
 }
 
 @property(retain) NSURLConnection *fetchConnection;
 @property(retain) NSMutableData   *fetchData;
 @property(retain) NSArray *entries;
 @property(retain) NSArray *categories;
+@property(retain) NSMutableDictionary *bundles;
 @property(retain) NSDictionary *currentEntry;
+@property(retain) NSPredicate *searchPredicate;
 @property(assign) BOOL showInfo;
 
 - (IBAction)reloadInfo:(id)sender;
+- (IBAction)showSite:(id)sender;
+- (IBAction)showHelp:(id)sender;
+- (IBAction)loadInfo:(id)sender;
+- (IBAction)resetValue:(id)sender;
+- (IBAction)openEntry:(id)sender;
+
 
 - (NSArray *) categories;
 - (void) setCategories: (NSArray *) newCategories;
@@ -55,10 +64,6 @@
 
 - (BOOL) showInfo;
 - (void) setShowInfo: (BOOL) flag;
-
-- (IBAction)loadInfo:(id)sender;
-
-
 
 
 @end

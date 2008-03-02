@@ -20,16 +20,14 @@
 	<string>${PRODUCT_NAME}</string>
 	<key>CFBundlePackageType</key>
 	<string>BNDL</string>
-	<key>CFBundleShortVersionString</key>
-	<string>1.0b9</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.0b9</string>
+	<string>1.0b15</string>
 	<key>NSMainNibFile</key>
 	<string>SecretsPref</string>
 	<key>NSPrefPaneIconFile</key>
-	<string>SecretsPref.tiff</string>
+	<string>Secrets.icns</string>
 	<key>NSPrefPaneIconLabel</key>
 	<string>Secrets</string>
 	<key>NSPrincipalClass</key>

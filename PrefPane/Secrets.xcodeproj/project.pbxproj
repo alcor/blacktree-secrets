@@ -16,10 +16,12 @@
 		7F1972B90D74201D00F580DC /* NSSortDescriptor+BLTRExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 7F1972B10D74201D00F580DC /* NSSortDescriptor+BLTRExtensions.m */; };
 		7F1972BA0D74201D00F580DC /* QSNonHighlightingTableView.h in Headers */ = {isa = PBXBuildFile; fileRef = 7F1972B20D74201D00F580DC /* QSNonHighlightingTableView.h */; };
 		7F704BA30D6EAD5C00879138 /* SecretsPref.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7F704BA10D6EAD5C00879138 /* SecretsPref.xib */; };
+		7FAA8C6A0D753E1C00F81F30 /* Secrets-small.png in Resources */ = {isa = PBXBuildFile; fileRef = 7FAA8C690D753E1C00F81F30 /* Secrets-small.png */; };
+		7FD490F20D7A865000DD7588 /* Application.png in Resources */ = {isa = PBXBuildFile; fileRef = 7FD490F10D7A865000DD7588 /* Application.png */; };
+		7FD4919B0D7A948B00DD7588 /* Secrets.icns in Resources */ = {isa = PBXBuildFile; fileRef = 7FD4919A0D7A948B00DD7588 /* Secrets.icns */; };
 		8D202CEA0486D31800D8A456 /* Secrets_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = 32DBCFA20370C41700C91783 /* Secrets_Prefix.pch */; };
 		8D202CEB0486D31800D8A456 /* SecretsPref.h in Headers */ = {isa = PBXBuildFile; fileRef = F506C03C013D9D7901CA16C8 /* SecretsPref.h */; };
 		8D202CED0486D31800D8A456 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C167DFE841241C02AAC07 /* InfoPlist.strings */; };
-		8D202CEE0486D31800D8A456 /* SecretsPref.tiff in Resources */ = {isa = PBXBuildFile; fileRef = F506C040013D9D8001CA16C8 /* SecretsPref.tiff */; };
 		8D202CF10486D31800D8A456 /* SecretsPref.m in Sources */ = {isa = PBXBuildFile; fileRef = F506C03D013D9D7901CA16C8 /* SecretsPref.m */; };
 		8D202CF30486D31800D8A456 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7ADFEA557BF11CA2CBB /* Cocoa.framework */; };
 		8D202CF40486D31800D8A456 /* PreferencePanes.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F506C035013D953901CA16C8 /* PreferencePanes.framework */; };
@@ -40,12 +42,14 @@
 		7F1972B10D74201D00F580DC /* NSSortDescriptor+BLTRExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSSortDescriptor+BLTRExtensions.m"; sourceTree = "<group>"; };
 		7F1972B20D74201D00F580DC /* QSNonHighlightingTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QSNonHighlightingTableView.h; sourceTree = "<group>"; };
 		7F704BA20D6EAD5C00879138 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/SecretsPref.xib; sourceTree = "<group>"; };
+		7FAA8C690D753E1C00F81F30 /* Secrets-small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Secrets-small.png"; sourceTree = "<group>"; };
+		7FD490F10D7A865000DD7588 /* Application.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Application.png; sourceTree = "<group>"; };
+		7FD4919A0D7A948B00DD7588 /* Secrets.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Secrets.icns; sourceTree = "<group>"; };
 		8D202CF70486D31800D8A456 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D202CF80486D31800D8A456 /* Secrets.prefPane */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Secrets.prefPane; sourceTree = BUILT_PRODUCTS_DIR; };
 		F506C035013D953901CA16C8 /* PreferencePanes.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PreferencePanes.framework; path = /System/Library/Frameworks/PreferencePanes.framework; sourceTree = "<absolute>"; };
 		F506C03C013D9D7901CA16C8 /* SecretsPref.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SecretsPref.h; sourceTree = "<group>"; };
 		F506C03D013D9D7901CA16C8 /* SecretsPref.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SecretsPref.m; sourceTree = "<group>"; };
-		F506C040013D9D8001CA16C8 /* SecretsPref.tiff */ = {isa = PBXFileReference; lastKnownFileType = image.tiff; path = SecretsPref.tiff; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -87,9 +91,11 @@
 		089C167CFE841241C02AAC07 /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				7FD490F10D7A865000DD7588 /* Application.png */,
 				8D202CF70486D31800D8A456 /* Info.plist */,
+				7FAA8C690D753E1C00F81F30 /* Secrets-small.png */,
 				089C167DFE841241C02AAC07 /* InfoPlist.strings */,
-				F506C040013D9D8001CA16C8 /* SecretsPref.tiff */,
+				7FD4919A0D7A948B00DD7588 /* Secrets.icns */,
 				7F704BA10D6EAD5C00879138 /* SecretsPref.xib */,
 			);
 			name = Resources;
@@ -99,13 +105,13 @@
 			isa = PBXGroup;
 			children = (
 				7F1972AB0D74201D00F580DC /* QSNonHighlightingTableView.m */,
+				7F1972B20D74201D00F580DC /* QSNonHighlightingTableView.h */,
 				7F1972AC0D74201D00F580DC /* NSGeometry_BLTRExtensions.h */,
 				7F1972AD0D74201D00F580DC /* NSGeometry_BLTRExtensions.m */,
 				7F1972AE0D74201D00F580DC /* NSImage_BLTRExtensions.h */,
 				7F1972AF0D74201D00F580DC /* NSImage_BLTRExtensions.m */,
 				7F1972B00D74201D00F580DC /* NSSortDescriptor+BLTRExtensions.h */,
 				7F1972B10D74201D00F580DC /* NSSortDescriptor+BLTRExtensions.m */,
-				7F1972B20D74201D00F580DC /* QSNonHighlightingTableView.h */,
 			);
 			name = Classes;
 			sourceTree = "<group>";
@@ -172,6 +178,7 @@
 				8D202CF00486D31800D8A456 /* Sources */,
 				8D202CF20486D31800D8A456 /* Frameworks */,
 				8D202CF50486D31800D8A456 /* Rez */,
+				7FD491FD0D7A951600DD7588 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -206,8 +213,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D202CED0486D31800D8A456 /* InfoPlist.strings in Resources */,
-				8D202CEE0486D31800D8A456 /* SecretsPref.tiff in Resources */,
 				7F704BA30D6EAD5C00879138 /* SecretsPref.xib in Resources */,
+				7FAA8C6A0D753E1C00F81F30 /* Secrets-small.png in Resources */,
+				7FD490F20D7A865000DD7588 /* Application.png in Resources */,
+				7FD4919B0D7A948B00DD7588 /* Secrets.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -222,6 +231,22 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXRezBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		7FD491FD0D7A951600DD7588 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "codesign -f -s Blacktree,\\ Inc. $CONFIGURATION_BUILD_DIR/$FULL_PRODUCT_NAME\ncodesign -v $CONFIGURATION_BUILD_DIR/$FULL_PRODUCT_NAME;\nexit 0";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		8D202CF00486D31800D8A456 /* Sources */ = {
@@ -263,7 +288,6 @@
 			buildSettings = {
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
-				GCC_ENABLE_FIX_AND_CONTINUE = YES;
 				GCC_MODEL_TUNING = G5;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
