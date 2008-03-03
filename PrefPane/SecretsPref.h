@@ -3,8 +3,7 @@
 //  Secrets
 //
 //  Created by Nicholas Jitkoff on 9/9/06.
-//  Copyright (c) 2006 Blacktree. All rights reserved.
-//
+
 
 #import <PreferencePanes/PreferencePanes.h>
 

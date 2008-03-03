@@ -3,8 +3,7 @@
 //  Secrets
 //
 //  Created by Nicholas Jitkoff on 9/9/06.
-//  Copyright (c) 2006 Blacktree. All rights reserved.
-//
+
 
 #import "SecretsPref.h"
 #import "NSSortDescriptor+BLTRExtensions.h"
@@ -36,7 +35,31 @@
   int row = [sender clickedRow];
   if (row < 0) return;
   if (row > [[entriesController arrangedObjects] count]) return;
+  
+  
+  
   if ([[column identifier] isEqualToString:@"value"]) {
+  id thisInfo = [[entriesController arrangedObjects] objectAtIndex: row]; 
+  
+	NSString *type = [thisInfo objectForKey:@"datatype"];
+  if ([type isEqualToString:@"path"]) {
+    NSOpenPanel *panel = [NSOpenPanel openPanel];
+    NSString *directory = [self tableView:entriesTable objectValueForTableColumn:column row:row];
+    //directory = [directory stringByDeletingLastPathComponent];
+    NSLog(@"directory %@", directory);
+    [panel setDirectory:directory];
+    [panel setCanChooseDirectories:YES];
+    [panel setResolvesAliases:YES];
+    NSInteger integer = [panel runModalForDirectory:[directory stringByDeletingLastPathComponent] file:[directory lastPathComponent]];
+    if (integer) {
+    NSLog(@"inte %d", integer, [panel filenames]);
+    NSString *path = [[panel filenames] lastObject];
+    [self tableView:entriesTable setObjectValue:path forTableColumn:column row:row];
+  }
+    return;
+  }
+  
+  
     if ([[sender preparedCellAtColumn:[sender clickedColumn] row:row] isKindOfClass:[NSTextFieldCell class]]) {
       [sender editColumn:[sender clickedColumn] row:[sender clickedRow] withEvent:[NSApp currentEvent] select:YES];
     }
@@ -102,6 +125,8 @@
   [entriesController setSortDescriptors:[NSArray arrayWithObjects:
                                          [NSSortDescriptor descriptorWithKey:@"top_secret"
                                                                    ascending:NO],
+                                         [NSSortDescriptor descriptorWithKey:@"display_bundle"
+                                                                   ascending:YES],
                                          [NSSortDescriptor descriptorWithKey:@"text"
                                                                    ascending:YES
                                                                     selector:@selector(caseInsensitiveCompare:)],
@@ -233,8 +258,9 @@
                                  [NSNumber numberWithInt:1], @"rank", 
                                  
                                  [NSPredicate predicateWithFormat:@"display_bundle like %@",  @".GlobalPreferences"], @"predicate", 
-                                 @".GlobalPreferences", @"display_bundle",
-                                 [NSMutableArray array] , @"contents",
+                                 @".GlobalPreferences", @"bundle",
+                                 
+                                 //[NSMutableArray array] , @"contents",
                                  nil];
   
   [bundles setValue:global forKey:@".GlobalPreferences"];
@@ -270,7 +296,7 @@
     if (!bundle) {
       bundle = [NSMutableDictionary dictionary];
       [bundle setObject: [NSPredicate predicateWithFormat:@"display_bundle like %@", ident] forKey:@"predicate"];
-      
+      [bundle setObject:[NSNumber numberWithBool:YES] forKey:@"showGlobals"];
       NSString *name = nil;  
       NSImage *image = nil;
       NSString *path = [workspace absolutePathForAppBundleWithIdentifier:ident];
@@ -294,10 +320,11 @@
       NSString *file = [[NSString stringWithFormat:@"~/Desktop/Icons/%@.png", ident] stringByStandardizingPath];
       [[(NSBitmapImageRep *)[image representationOfSize:NSMakeSize(32, 32)] representationUsingType:NSPNGFileType properties:nil] writeToFile:file atomically:YES];
       
+      [bundle setObject:ident forKey:@"bundle"];
       [bundle setObject:image forKey:@"image"];
       [bundle setObject:name forKey:@"text"];
       
-      [bundle setObject:[NSMutableArray array] forKey:@"contents"];
+//      [bundle setObject:[NSMutableArray array] forKey:@"contents"];
       [bundles setValue:bundle forKey:ident];  
     }
     
@@ -314,7 +341,7 @@
     
     if (![entry objectForKey:@"title"]) [entry setValue:[entry objectForKey:@"keypath"] forKey:@"title"];
     if (![entry objectForKey:@"title"]) [entry setValue:@"unknown" forKey:@"title"];
-    [[bundle objectForKey:@"contents"] addObject:entry];
+    //[[bundle objectForKey:@"contents"] addObject:entry];
   }
   
 	[self setCategories:[bundles allValues]];
@@ -441,6 +468,12 @@
 		[cell setTitle:@""];
 	}
   
+  
+  if ([type isEqualToString:@"path"]) {
+    cell = [[NSPathCell alloc] init];
+    [(NSPathCell *)cell setBackgroundColor:[NSColor clearColor]];//:NSPathStyleNavigationBar];
+  }
+  
 	if ([widget hasPrefix:@"popup"]) {
 		cell = [[[NSPopUpButtonCell alloc] init] autorelease];
 		
@@ -450,6 +483,7 @@
     NSMenu *menu = [self menuForValues:[thisInfo objectForKey:@"values"]];
     [cell setMenu:menu];
 	}
+  
   if (!cell) {
     cell = [[[NSTextFieldCell alloc] init] autorelease];    
     NSString *placeholder = [thisInfo objectForKey:@"placeholder"];
@@ -544,7 +578,7 @@
     }
   }
 
-  NSLog(@"defaults write %@ %@ %@ %@", bundle, key, keypath ? keypath : @"", value );
+  NSLog(@"defaults write %@ %@ \"%@\" \"%@\" %@ %@", user, host, bundle, key, keypath ? keypath : @"", value );
  
   if (keypath) { // Handle dictionary subpath
     NSDictionary *dictValue = (NSDictionary *)CFPreferencesCopyValue((CFStringRef)key, (CFStringRef)bundle, user, host);
@@ -577,7 +611,10 @@
   
   CFStringRef user = kCFPreferencesCurrentUser;
   CFStringRef host = kCFPreferencesAnyHost;
-  if ([[thisInfo objectForKey:@"set_for_all_users"] boolValue]) user = kCFPreferencesAnyUser;
+  if ([[thisInfo objectForKey:@"set_for_all_users"] boolValue]) {
+    user = kCFPreferencesAnyUser;
+    host = kCFPreferencesCurrentHost;
+}
   if ([[thisInfo objectForKey:@"current_host_only"] boolValue]) host = kCFPreferencesCurrentHost;
   BOOL isKeypath = [[thisInfo objectForKey:@"is_keypath"] boolValue];
   return [self getUserDefaultsValueForKey:keypath
@@ -593,7 +630,10 @@
   CFStringRef user = kCFPreferencesCurrentUser;
   CFStringRef host = kCFPreferencesAnyHost;
   
-  if ([[thisInfo objectForKey:@"set_for_all_users"] boolValue]) user = kCFPreferencesAnyUser;
+  if ([[thisInfo objectForKey:@"set_for_all_users"] boolValue]) {
+    user = kCFPreferencesAnyUser;
+    host = kCFPreferencesCurrentHost;
+  }
   if ([[thisInfo objectForKey:@"current_host_only"] boolValue]) host = kCFPreferencesCurrentHost;
   
   NSString *keypath = [thisInfo objectForKey:@"keypath"];
@@ -622,6 +662,12 @@
     id thisInfo = [[entriesController arrangedObjects] objectAtIndex:rowIndex]; 	
     NSString *ident = [thisInfo objectForKey:@"display_bundle"];
     if (!ident) ident = [thisInfo objectForKey:@"bundle"];
+    
+//    if ([ident isEqualToString:@".GlobalPreferences"]) {
+//      id category = [[categoriesController selectedObjects] lastObject];
+//      ident = [category valueForKey:@"bundle"];
+//      NSLog(@"ident %@", category);
+//    }
     return [[bundles objectForKey:ident] objectForKey:@"image"];
   }
   
@@ -696,19 +742,32 @@
 
 - (void)updateEntries {
   
-  int row = [categoriesTable selectedRow];
-  NSArray *objects = [categoriesController arrangedObjects];
-  id selection = row >= 0 && row < [objects count] ? [objects objectAtIndex:row] : nil;
-
+//  int row = [categoriesTable selectedRow];
+//  NSArray *objects = [categoriesController arrangedObjects];
+//  id selection = row >= 0 && row < [objects count] ? [objects objectAtIndex:row] : nil;
+  id category = [[categoriesController selectedObjects] lastObject];
   NSPredicate *predicate = [NSPredicate predicateWithFormat:@"hidden != 1"];
   if (searchPredicate) predicate = [NSCompoundPredicate andPredicateWithSubpredicates:[NSArray arrayWithObjects:predicate, searchPredicate, nil]];
   
-  NSPredicate *categoryPredicate = [selection valueForKey:@"predicate"];
+  NSPredicate *categoryPredicate = [category valueForKey:@"predicate"];
+
+  
+  // Don't show globals for now
+//  if (categoryPredicate && [category valueForKey:@"showGlobals"] ) {
+//    categoryPredicate = [NSCompoundPredicate orPredicateWithSubpredicates:[NSArray arrayWithObjects:
+//                         categoryPredicate,
+//                         [NSPredicate predicateWithFormat:@"bundle = '.GlobalPreferences'"], nil
+//                         ]];
+//                                                                                             
+//  }
   
   if (categoryPredicate) predicate = [NSCompoundPredicate andPredicateWithSubpredicates:[NSArray arrayWithObjects:predicate, categoryPredicate, nil]];
   
+  
+  
+  
   [entriesController setFilterPredicate:predicate];
-  [self setShowInfo:selection == nil];
+  [self setShowInfo:category == nil];
   
 }
 
