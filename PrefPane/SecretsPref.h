@@ -53,13 +53,7 @@
 - (IBAction)resetValue:(id)sender;
 - (IBAction)openEntry:(id)sender;
 
-
-- (NSArray *) categories;
-- (void) setCategories: (NSArray *) newCategories;
-- (NSArray *) entries;
-- (void) setEntries: (NSArray *) newEntries;
-- (NSDictionary *) currentEntry;
-- (void) setCurrentEntry: (NSDictionary *) newCurrentEntry;
+- (IBAction)quitEntry:(id)sender;
 
 - (BOOL) showInfo;
 - (void) setShowInfo: (BOOL) flag;

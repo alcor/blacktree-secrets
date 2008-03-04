@@ -7,18 +7,17 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		7F1972B30D74201D00F580DC /* QSNonHighlightingTableView.m in Sources */ = {isa = PBXBuildFile; fileRef = 7F1972AB0D74201D00F580DC /* QSNonHighlightingTableView.m */; };
 		7F1972B40D74201D00F580DC /* NSGeometry_BLTRExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 7F1972AC0D74201D00F580DC /* NSGeometry_BLTRExtensions.h */; };
 		7F1972B50D74201D00F580DC /* NSGeometry_BLTRExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 7F1972AD0D74201D00F580DC /* NSGeometry_BLTRExtensions.m */; };
 		7F1972B60D74201D00F580DC /* NSImage_BLTRExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 7F1972AE0D74201D00F580DC /* NSImage_BLTRExtensions.h */; };
 		7F1972B70D74201D00F580DC /* NSImage_BLTRExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 7F1972AF0D74201D00F580DC /* NSImage_BLTRExtensions.m */; };
 		7F1972B80D74201D00F580DC /* NSSortDescriptor+BLTRExtensions.h in Headers */ = {isa = PBXBuildFile; fileRef = 7F1972B00D74201D00F580DC /* NSSortDescriptor+BLTRExtensions.h */; };
 		7F1972B90D74201D00F580DC /* NSSortDescriptor+BLTRExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 7F1972B10D74201D00F580DC /* NSSortDescriptor+BLTRExtensions.m */; };
-		7F1972BA0D74201D00F580DC /* QSNonHighlightingTableView.h in Headers */ = {isa = PBXBuildFile; fileRef = 7F1972B20D74201D00F580DC /* QSNonHighlightingTableView.h */; };
 		7F704BA30D6EAD5C00879138 /* SecretsPref.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7F704BA10D6EAD5C00879138 /* SecretsPref.xib */; };
 		7FAA8C6A0D753E1C00F81F30 /* Secrets-small.png in Resources */ = {isa = PBXBuildFile; fileRef = 7FAA8C690D753E1C00F81F30 /* Secrets-small.png */; };
 		7FD490F20D7A865000DD7588 /* Application.png in Resources */ = {isa = PBXBuildFile; fileRef = 7FD490F10D7A865000DD7588 /* Application.png */; };
 		7FD4919B0D7A948B00DD7588 /* Secrets.icns in Resources */ = {isa = PBXBuildFile; fileRef = 7FD4919A0D7A948B00DD7588 /* Secrets.icns */; };
+		7FEB02540D7D22D700F4D367 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7FEB02530D7D22D700F4D367 /* Carbon.framework */; };
 		8D202CEA0486D31800D8A456 /* Secrets_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = 32DBCFA20370C41700C91783 /* Secrets_Prefix.pch */; };
 		8D202CEB0486D31800D8A456 /* SecretsPref.h in Headers */ = {isa = PBXBuildFile; fileRef = F506C03C013D9D7901CA16C8 /* SecretsPref.h */; };
 		8D202CED0486D31800D8A456 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C167DFE841241C02AAC07 /* InfoPlist.strings */; };
@@ -33,18 +32,17 @@
 		089C167FFE841241C02AAC07 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		1058C7ADFEA557BF11CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		32DBCFA20370C41700C91783 /* Secrets_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Secrets_Prefix.pch; sourceTree = "<group>"; };
-		7F1972AB0D74201D00F580DC /* QSNonHighlightingTableView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = QSNonHighlightingTableView.m; sourceTree = "<group>"; };
 		7F1972AC0D74201D00F580DC /* NSGeometry_BLTRExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSGeometry_BLTRExtensions.h; sourceTree = "<group>"; };
 		7F1972AD0D74201D00F580DC /* NSGeometry_BLTRExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSGeometry_BLTRExtensions.m; sourceTree = "<group>"; };
 		7F1972AE0D74201D00F580DC /* NSImage_BLTRExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NSImage_BLTRExtensions.h; sourceTree = "<group>"; };
 		7F1972AF0D74201D00F580DC /* NSImage_BLTRExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NSImage_BLTRExtensions.m; sourceTree = "<group>"; };
 		7F1972B00D74201D00F580DC /* NSSortDescriptor+BLTRExtensions.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSSortDescriptor+BLTRExtensions.h"; sourceTree = "<group>"; };
 		7F1972B10D74201D00F580DC /* NSSortDescriptor+BLTRExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSSortDescriptor+BLTRExtensions.m"; sourceTree = "<group>"; };
-		7F1972B20D74201D00F580DC /* QSNonHighlightingTableView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QSNonHighlightingTableView.h; sourceTree = "<group>"; };
 		7F704BA20D6EAD5C00879138 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/SecretsPref.xib; sourceTree = "<group>"; };
 		7FAA8C690D753E1C00F81F30 /* Secrets-small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Secrets-small.png"; sourceTree = "<group>"; };
 		7FD490F10D7A865000DD7588 /* Application.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Application.png; sourceTree = "<group>"; };
 		7FD4919A0D7A948B00DD7588 /* Secrets.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Secrets.icns; sourceTree = "<group>"; };
+		7FEB02530D7D22D700F4D367 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
 		8D202CF70486D31800D8A456 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D202CF80486D31800D8A456 /* Secrets.prefPane */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Secrets.prefPane; sourceTree = BUILT_PRODUCTS_DIR; };
 		F506C035013D953901CA16C8 /* PreferencePanes.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PreferencePanes.framework; path = /System/Library/Frameworks/PreferencePanes.framework; sourceTree = "<absolute>"; };
@@ -59,6 +57,7 @@
 			files = (
 				8D202CF30486D31800D8A456 /* Cocoa.framework in Frameworks */,
 				8D202CF40486D31800D8A456 /* PreferencePanes.framework in Frameworks */,
+				7FEB02540D7D22D700F4D367 /* Carbon.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -104,8 +103,6 @@
 		08FB77AFFE84173DC02AAC07 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
-				7F1972AB0D74201D00F580DC /* QSNonHighlightingTableView.m */,
-				7F1972B20D74201D00F580DC /* QSNonHighlightingTableView.h */,
 				7F1972AC0D74201D00F580DC /* NSGeometry_BLTRExtensions.h */,
 				7F1972AD0D74201D00F580DC /* NSGeometry_BLTRExtensions.m */,
 				7F1972AE0D74201D00F580DC /* NSImage_BLTRExtensions.h */,
@@ -119,6 +116,7 @@
 		1058C7ACFEA557BF11CA2CBB /* Linked Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				7FEB02530D7D22D700F4D367 /* Carbon.framework */,
 				1058C7ADFEA557BF11CA2CBB /* Cocoa.framework */,
 				F506C035013D953901CA16C8 /* PreferencePanes.framework */,
 			);
@@ -162,7 +160,6 @@
 				7F1972B40D74201D00F580DC /* NSGeometry_BLTRExtensions.h in Headers */,
 				7F1972B60D74201D00F580DC /* NSImage_BLTRExtensions.h in Headers */,
 				7F1972B80D74201D00F580DC /* NSSortDescriptor+BLTRExtensions.h in Headers */,
-				7F1972BA0D74201D00F580DC /* QSNonHighlightingTableView.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -254,7 +251,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				8D202CF10486D31800D8A456 /* SecretsPref.m in Sources */,
-				7F1972B30D74201D00F580DC /* QSNonHighlightingTableView.m in Sources */,
 				7F1972B50D74201D00F580DC /* NSGeometry_BLTRExtensions.m in Sources */,
 				7F1972B70D74201D00F580DC /* NSImage_BLTRExtensions.m in Sources */,
 				7F1972B90D74201D00F580DC /* NSSortDescriptor+BLTRExtensions.m in Sources */,

@@ -11,6 +11,7 @@
 
 #define foreach(x, y) id x; NSEnumerator *rwEnum = [y objectEnumerator]; while(x = [rwEnum nextObject])
 #define kSecretsURL [NSURL URLWithString:@"http://secrets.textdriven.com/info/list"]
+#define kSecretsSafeURL [NSURL URLWithString:@"http://quicksilver.meadgroup.com/secrets/list.plist"]
 #define kSecretsHelpURL [NSURL URLWithString:@"http://code.google.com/p/blacktree-secrets/wiki/Help"]
 #define kSecretsEditFormatString @"http://secrets.textdriven.com/preferences/edit/%@"
 #define kSecretsSiteURL [NSURL URLWithString:@"http://secrets.textdriven.com/"]
@@ -77,7 +78,36 @@
   
 }
 
+-(OSStatus)quitApplicationWithBundleID:(NSString *)bundleID {
+  OSStatus err;
+  AppleEvent event, reply;
+  
+  const char *bundleIDString = [bundleID UTF8String];
+  
+  err = AEBuildAppleEvent(kCoreEventClass, kAEQuitApplication,
+                          typeApplicationBundleID, 
+                          bundleIDString, strlen(bundleIDString),
+                          kAutoGenerateReturnID, kAnyTransactionID,
+                          &event, NULL, "");
+  
+  if (err == noErr) {
+    err = AESendMessage(&event, &reply, kAENoReply, kAEDefaultTimeout);
+    (void)AEDisposeDesc(&event);
+  }
+  return err;
+}
 
+- (IBAction)quitEntry:(id)sender {
+  int row = [entriesTable selectedRow];
+  id thisInfo = [[entriesController arrangedObjects] objectAtIndex: row]; 	
+  NSDictionary *app = [thisInfo objectForKey:@"container"];
+  
+  [self quitApplicationWithBundleID:[app valueForKey:@"NSApplicationBundleIdentifier"]];
+
+  // make it undirty, even if it still is
+  [app setValue:nil forKey:@"dirty"];
+
+}
 
 - (void) willSelect {
   [self loadInfo:nil];
@@ -116,16 +146,47 @@
 {
 }
 
+
+- (void)appLaunched:(NSNotification *)notif {
+  NSString *bundle = [[notif userInfo] objectForKey:@"NSApplicationBundleIdentifier"];
+  
+  [[bundles objectForKey:bundle] setValue:nil forKey:@"dirty"];
+  [[bundles objectForKey:bundle] setValue:[NSNumber numberWithBool:YES] forKey:@"running"];
+  [[bundles objectForKey:bundle] setValuesForKeysWithDictionary:[notif userInfo]];
+}
+
+
+- (void)appTerminated:(NSNotification *)notif {
+  NSString *bundle = [[notif userInfo] objectForKey:@"NSApplicationBundleIdentifier"];
+  [[bundles objectForKey:bundle] setValue:nil forKey:@"dirty"];
+  [[bundles objectForKey:bundle] setValue:[NSNumber numberWithBool:NO] forKey:@"running"];
+}
+
+
+
 - (void)awakeFromNib {
-//	[categoriesController addObserver:self
+  
+  [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
+                                                         selector:@selector(appLaunched:)
+                                                             name:NSWorkspaceDidLaunchApplicationNotification
+                                                           object:nil];
+
+  [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
+                                                         selector:@selector(appTerminated:)
+                                                             name:NSWorkspaceDidTerminateApplicationNotification
+                                                           object:nil];
+
+  //	[categoriesController addObserver:self
 //                         forKeyPath:@"selectedObjects"
 //                            options:0
 //                            context:nil];
   
   [entriesController setSortDescriptors:[NSArray arrayWithObjects:
-                                         [NSSortDescriptor descriptorWithKey:@"top_secret"
-                                                                   ascending:NO],
+                     
                                          [NSSortDescriptor descriptorWithKey:@"display_bundle"
+                                                                   ascending:YES],
+                                         
+                                         [NSSortDescriptor descriptorWithKey:@"group"
                                                                    ascending:YES],
                                          [NSSortDescriptor descriptorWithKey:@"text"
                                                                    ascending:YES
@@ -150,6 +211,8 @@
 	NSTableColumn *iconColumn = [entriesTable tableColumnWithIdentifier:@"icon"];
   [[iconColumn dataCell] setImageAlignment:NSImageAlignTopRight];
 	
+  
+
 	[[NSNotificationCenter defaultCenter]
    addObserver:self
    selector:@selector(columnResized)
@@ -181,6 +244,25 @@
   [progressField display];
   
   
+  
+  NSString *surl = [self getUserDefaultsValueForKey:@"secretsURL"
+                            bundle:@"com.blacktree.secrets"
+                              user:kCFPreferencesCurrentUser 
+                              host:kCFPreferencesAnyHost 
+                                      asKeyPath:NO];
+  
+  NSURL *url = nil;
+  if ([surl isEqualToString:@"SAFE_SERVER"]) {
+    url = kSecretsSafeURL;
+  } else if ([surl isEqualToString:@"LIVE_SERVER"]) {
+    url = kSecretsURL;
+  } if (!surl) {
+    url = kSecretsURL;
+  } else {
+    url = [NSURL URLWithString:surl];
+  }
+  NSLog(@"Secrets: Loading secrets from %@", url);
+  
   NSURLRequest *request = [NSURLRequest requestWithURL:kSecretsURL
                                            cachePolicy:NSURLRequestReloadIgnoringCacheData
                                        timeoutInterval:10.0];
@@ -191,7 +273,7 @@
     [progressIndicator startAnimation:nil];
     return nil;
   }
-  NSLog(@"Connection already in progress");
+  NSLog(@"Secrets: Connection already in progress");
   return nil;
 }
 
@@ -231,42 +313,53 @@
   NSString *imagePath = [[NSBundle bundleForClass:[self class]] pathForImageResource:@"Application"];
   NSImage *image = [[[NSImage alloc] initWithContentsOfFile:imagePath] autorelease];
   
-  NSMutableDictionary *topSecrets = [NSDictionary dictionaryWithObjectsAndKeys:
+  NSMutableDictionary *topSecrets = [NSMutableDictionary dictionaryWithObjectsAndKeys:
                                      @"TOP SECRETS", @"text",
                                      [NSNumber numberWithInt:3], @"rank", 
                                      image , @"image", 
                                      [NSNumber numberWithBool:YES] , @"bold",
+                                     
+                                     [NSNumber numberWithBool:YES] , @"hideGroups",
                                      [NSPredicate predicateWithFormat:@"top_secret == TRUE"],  @"predicate", 
                                      nil];
   
   [bundles setValue:topSecrets forKey:@"TOP_SECRETS"];
 
   
-  NSMutableDictionary *all = [NSDictionary dictionaryWithObjectsAndKeys:
+  NSMutableDictionary *all = [NSMutableDictionary dictionaryWithObjectsAndKeys:
                               @"All Secrets", @"text",
                               [NSNumber numberWithInt:2], @"rank", 
+                              [NSNumber numberWithBool:YES] , @"hideGroups",
                               [NSImage imageNamed:@"NSApplicationIcon"] , @"image",
                               nil];
   
   [bundles setValue:all forKey:@"ALL"];
     
   
-  NSMutableDictionary *global = [NSDictionary dictionaryWithObjectsAndKeys:
-                                 @"Systemwide", @"text",
-                                 [NSImage imageNamed:@"NSApplicationIcon"] , @"image",
-                                 
+  NSMutableDictionary *global = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                                 @"System", @"text",
+                                 [NSImage imageNamed:@"NSComputer"] , @"image",
                                  [NSNumber numberWithInt:1], @"rank", 
-                                 
                                  [NSPredicate predicateWithFormat:@"display_bundle like %@",  @".GlobalPreferences"], @"predicate", 
                                  @".GlobalPreferences", @"bundle",
-                                 
-                                 //[NSMutableArray array] , @"contents",
                                  nil];
   
   [bundles setValue:global forKey:@".GlobalPreferences"];
   
   
-	[self setCategories:[bundles allValues]];
+  NSArray *launchedApps = [[NSWorkspace sharedWorkspace] launchedApplications];
+  NSMutableDictionary *launchedAppsDictionary = [NSMutableDictionary dictionaryWithObjects:launchedApps
+                                                                     forKeys:[launchedApps valueForKey:@"NSApplicationBundleIdentifier"]];
+
+
+	// Add dock and frontrow
+  [launchedAppsDictionary setObject:[NSDictionary dictionaryWithObjectsAndKeys:@"com.apple.dock", @"NSApplicationBundleIdentifier", nil] 
+                             forKey:@"com.apple.dock"];
+  [launchedAppsDictionary setObject:[NSDictionary dictionaryWithObjectsAndKeys:@"com.apple.frontrow", @"NSApplicationBundleIdentifier", nil] 
+                             forKey:@"com.apple.frontrowlauncher"];
+  
+  
+  [self setCategories:[bundles allValues]];
   
   NSWorkspace *workspace = [NSWorkspace sharedWorkspace];
   
@@ -300,10 +393,20 @@
       NSString *name = nil;  
       NSImage *image = nil;
       NSString *path = [workspace absolutePathForAppBundleWithIdentifier:ident];
+
+      
+      NSString *appDictionary = [launchedAppsDictionary objectForKey:ident];
+      if (appDictionary) {
+        [bundle setValue:[NSNumber numberWithBool:YES] forKey:@"running"];  
+        [bundle setValuesForKeysWithDictionary:appDictionary];
+      }
+      
       
       if ([ident hasPrefix:@"/"]) {
-        path = ident;
+        if ([[NSFileManager defaultManager] fileExistsAtPath:ident])
+          path = ident;
       }
+      
       if (path) {
         image = [workspace iconForFile:path];
         name = [[path lastPathComponent] stringByDeletingPathExtension];
@@ -338,6 +441,7 @@
       if (errorDescription) NSLog(@"error %@ %@", errorDescription, [entry objectForKey:@"values"]);
       if (values) [entry setValue:values forKey:@"values"];
     }
+    [entry setValue:bundle forKey:@"container"];
     
     if (![entry objectForKey:@"title"]) [entry setValue:[entry objectForKey:@"keypath"] forKey:@"title"];
     if (![entry objectForKey:@"title"]) [entry setValue:@"unknown" forKey:@"title"];
@@ -345,9 +449,14 @@
   }
   
 	[self setCategories:[bundles allValues]];
+  if ([[entriesController arrangedObjects] count] > 0)
+  [entriesTable noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [[entriesController arrangedObjects] count]-1 )]];
+
 }
 
 - (void)columnResized {
+  
+  if ([[entriesController arrangedObjects] count] > 0)
   [entriesTable noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [[entriesController arrangedObjects] count]-1 )]];
 }
 
@@ -423,7 +532,31 @@
 
 - (void)tableView:(NSTableView *)tableView willDisplayCell:(id)cell forTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
   
+  if ([[tableColumn identifier] isEqualToString:@"group"]) {
+    if (row < 1) return;
+    id thisObject = [[entriesController arrangedObjects] objectAtIndex:row];
+    id lastObject = [[entriesController arrangedObjects] objectAtIndex:row -1];
+    if ([[thisObject valueForKey:@"group"] isEqualToString:[lastObject valueForKey:@"group"]]) {
+      [cell setStringValue:@""];    
+      
+    }
+  }
+  
+  if ([[tableColumn identifier] isEqualToString:@"app"]) {
+    if (row < 1) return;
+    id thisObject = [[entriesController arrangedObjects] objectAtIndex:row];
+    id lastObject = [[entriesController arrangedObjects] objectAtIndex:row -1];
+    if ([[thisObject valueForKey:@"container"] isEqual:[lastObject valueForKey:@"container"]]) {
+      [cell setStringValue:@""];    
+      
+    }
+  }
+  
+  
   if ([[tableColumn identifier] isEqualToString:@"title"]) {
+    if (row >= [[entriesController arrangedObjects] count]) {
+      return;
+    }  
     id thisInfo = [[entriesController arrangedObjects] objectAtIndex:row]; 	
     NSColor * textColor = [thisInfo objectForKey:@"textColor"];
     
@@ -441,7 +574,9 @@
 - (NSCell *)tableView:(NSTableView *)tableView dataCellForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
   
   if ([[tableColumn identifier] isEqualToString:@"title"]) {
-    
+    if (row >= [[entriesController arrangedObjects] count]) {
+      return nil;
+    }    
     id thisInfo = [[entriesController arrangedObjects] objectAtIndex:row]; 	
     
     
@@ -646,6 +781,15 @@
                         host:host
                    asKeyPath:isKeypath];
   
+  
+  NSString *display_bundle = [thisInfo objectForKey:@"display_bundle"];
+  if (!display_bundle ) display_bundle = [thisInfo objectForKey:@"bundle"];
+  
+  // Mark the bundle as dirty if it is running
+  NSDictionary *bundleInfo = [bundles objectForKey:display_bundle];
+  if ([bundleInfo valueForKey:@"running"])  
+    [bundleInfo setValue:[NSNumber numberWithBool:YES] forKey:@"dirty"];
+  
 }
 
 
@@ -741,16 +885,13 @@
 }
 
 - (void)updateEntries {
-  
-//  int row = [categoriesTable selectedRow];
-//  NSArray *objects = [categoriesController arrangedObjects];
-//  id selection = row >= 0 && row < [objects count] ? [objects objectAtIndex:row] : nil;
   id category = [[categoriesController selectedObjects] lastObject];
+
   NSPredicate *predicate = [NSPredicate predicateWithFormat:@"hidden != 1"];
   if (searchPredicate) predicate = [NSCompoundPredicate andPredicateWithSubpredicates:[NSArray arrayWithObjects:predicate, searchPredicate, nil]];
   
-  NSPredicate *categoryPredicate = [category valueForKey:@"predicate"];
 
+  NSPredicate *categoryPredicate = [category valueForKey:@"predicate"];
   
   // Don't show globals for now
 //  if (categoryPredicate && [category valueForKey:@"showGlobals"] ) {
@@ -763,26 +904,50 @@
   
   if (categoryPredicate) predicate = [NSCompoundPredicate andPredicateWithSubpredicates:[NSArray arrayWithObjects:predicate, categoryPredicate, nil]];
   
-  
-  
-  
   [entriesController setFilterPredicate:predicate];
   [self setShowInfo:category == nil];
+  
+  BOOL hasGroups = [[[entriesController arrangedObjects] valueForKeyPath:@"@distinctUnionOfObjects.group"] count] > 1;
+  
+  @try {
+    NSTableColumn *appColumn = [entriesTable tableColumnWithIdentifier:@"app"];
+    [appColumn setHidden:![[category valueForKey:@"hideGroups"] boolValue]];
+    
+    NSTableColumn *iconColumn = [entriesTable tableColumnWithIdentifier:@"icon"];
+    [iconColumn setHidden:hasGroups && ![[category valueForKey:@"hideGroups"] boolValue]];
+    
+    NSTableColumn *groupColumn = [entriesTable tableColumnWithIdentifier:@"group"];
+    [groupColumn setHidden:!hasGroups || [[category valueForKey:@"hideGroups"] boolValue]];
+  }
+  @catch (NSException *e) {
+    NSLog(@"error: %@", [e callStackReturnAddresses]);  
+  }
+  
+  [entriesTable reloadData];
+    if ([[entriesController arrangedObjects] count])
+  [entriesTable noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [[entriesController arrangedObjects] count]-1 )]];
+
   
 }
 
 - (void)tableViewSelectionIsChanging:(NSNotification *)notification {
-  [self updateEntries];
-  
-  if ([notification object] == categoriesTable)
+  if ([notification object] == categoriesTable) {
+    int row = [categoriesTable selectedRow];
+    id thisInfo = [[categoriesController arrangedObjects] objectAtIndex: row]; 	
+    
+    [categoriesController setSelectedObjects:[NSArray arrayWithObject:thisInfo]];
+    [self updateEntries];
+    
     self.searchPredicate = nil;
+    
+  }
 }
 
 - (void)tableViewSelectionDidChange:(NSNotification *)notification {
-  [self updateEntries];
-  if ([notification object] == categoriesTable)
+  if ([notification object] == categoriesTable) {
     self.searchPredicate = nil;
-  
+    [self updateEntries];
+  }  
 }
 
 
@@ -866,7 +1031,7 @@
                                            defaultButton:@"Get it!" 
                                          alternateButton:@"Later" 
                                              otherButton:nil
-                               informativeTextWithFormat:@"Secrets has been updated to %@", version];
+                               informativeTextWithFormat:@"Secrets %@ has been released.", version];
     
     [updateAlert beginSheetModalForWindow:[[self mainView] window]
                             modalDelegate:self didEndSelector:@selector(alertDidEnd:returnCode:contextInfo:)
@@ -879,6 +1044,7 @@
 - (void)alertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo {
   if (returnCode) {
     [[NSWorkspace sharedWorkspace] openURL:kSecretsSiteURL];
+    [NSApp terminate];
   }
 }
 
