@@ -18,6 +18,8 @@
 		7FD490F20D7A865000DD7588 /* Application.png in Resources */ = {isa = PBXBuildFile; fileRef = 7FD490F10D7A865000DD7588 /* Application.png */; };
 		7FD4919B0D7A948B00DD7588 /* Secrets.icns in Resources */ = {isa = PBXBuildFile; fileRef = 7FD4919A0D7A948B00DD7588 /* Secrets.icns */; };
 		7FEB02540D7D22D700F4D367 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7FEB02530D7D22D700F4D367 /* Carbon.framework */; };
+		7FFC7F650D7E512B00499B8E /* Informer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC7F450D7E50BA00499B8E /* Informer.m */; };
+		7FFC7F670D7E514000499B8E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 089C1672FE841209C02AAC07 /* Foundation.framework */; };
 		8D202CEA0486D31800D8A456 /* Secrets_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = 32DBCFA20370C41700C91783 /* Secrets_Prefix.pch */; };
 		8D202CEB0486D31800D8A456 /* SecretsPref.h in Headers */ = {isa = PBXBuildFile; fileRef = F506C03C013D9D7901CA16C8 /* SecretsPref.h */; };
 		8D202CED0486D31800D8A456 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C167DFE841241C02AAC07 /* InfoPlist.strings */; };
@@ -43,6 +45,9 @@
 		7FD490F10D7A865000DD7588 /* Application.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Application.png; sourceTree = "<group>"; };
 		7FD4919A0D7A948B00DD7588 /* Secrets.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Secrets.icns; sourceTree = "<group>"; };
 		7FEB02530D7D22D700F4D367 /* Carbon.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Carbon.framework; path = /System/Library/Frameworks/Carbon.framework; sourceTree = "<absolute>"; };
+		7FFC7F3C0D7E4FEF00499B8E /* Informer.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = Informer.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		7FFC7F440D7E50BA00499B8E /* dyld-interposing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "dyld-interposing.h"; sourceTree = "<group>"; };
+		7FFC7F450D7E50BA00499B8E /* Informer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Informer.m; sourceTree = "<group>"; };
 		8D202CF70486D31800D8A456 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D202CF80486D31800D8A456 /* Secrets.prefPane */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Secrets.prefPane; sourceTree = BUILT_PRODUCTS_DIR; };
 		F506C035013D953901CA16C8 /* PreferencePanes.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PreferencePanes.framework; path = /System/Library/Frameworks/PreferencePanes.framework; sourceTree = "<absolute>"; };
@@ -51,6 +56,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		7FFC7F3A0D7E4FEF00499B8E /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7FFC7F670D7E514000499B8E /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8D202CF20486D31800D8A456 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -70,6 +83,7 @@
 				F506C03C013D9D7901CA16C8 /* SecretsPref.h */,
 				F506C03D013D9D7901CA16C8 /* SecretsPref.m */,
 				08FB77AFFE84173DC02AAC07 /* Classes */,
+				7FFC7F430D7E50BA00499B8E /* Informer */,
 				32DBCFA10370C40200C91783 /* Other Sources */,
 				089C167CFE841241C02AAC07 /* Resources */,
 				089C1671FE841209C02AAC07 /* Frameworks and Libraries */,
@@ -136,6 +150,7 @@
 			isa = PBXGroup;
 			children = (
 				8D202CF80486D31800D8A456 /* Secrets.prefPane */,
+				7FFC7F3C0D7E4FEF00499B8E /* Informer.dylib */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -148,9 +163,25 @@
 			name = "Other Sources";
 			sourceTree = "<group>";
 		};
+		7FFC7F430D7E50BA00499B8E /* Informer */ = {
+			isa = PBXGroup;
+			children = (
+				7FFC7F440D7E50BA00499B8E /* dyld-interposing.h */,
+				7FFC7F450D7E50BA00499B8E /* Informer.m */,
+			);
+			path = Informer;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
+		7FFC7F380D7E4FEF00499B8E /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8D202CE90486D31800D8A456 /* Headers */ = {
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
@@ -166,6 +197,23 @@
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
+		7FFC7F3B0D7E4FEF00499B8E /* Informer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7FFC7F400D7E503600499B8E /* Build configuration list for PBXNativeTarget "Informer" */;
+			buildPhases = (
+				7FFC7F380D7E4FEF00499B8E /* Headers */,
+				7FFC7F390D7E4FEF00499B8E /* Sources */,
+				7FFC7F3A0D7E4FEF00499B8E /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Informer;
+			productName = Informer;
+			productReference = 7FFC7F3C0D7E4FEF00499B8E /* Informer.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
 		8D202CE80486D31800D8A456 /* Secrets */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 1DBD214808BA80EA00186707 /* Build configuration list for PBXNativeTarget "Secrets" */;
@@ -200,6 +248,7 @@
 			projectRoot = "";
 			targets = (
 				8D202CE80486D31800D8A456 /* Secrets */,
+				7FFC7F3B0D7E4FEF00499B8E /* Informer */,
 			);
 		};
 /* End PBXProject section */
@@ -246,6 +295,14 @@
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		7FFC7F390D7E4FEF00499B8E /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7FFC7F650D7E512B00499B8E /* Informer.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		8D202CF00486D31800D8A456 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -338,6 +395,57 @@
 			};
 			name = Release;
 		};
+		7FFC7F3D0D7E4FF100499B8E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = NO;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_FIX_AND_CONTINUE = YES;
+				GCC_ENABLE_OBJC_GC = unsupported;
+				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
+				INSTALL_PATH = /usr/local/lib;
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = Informer;
+				ZERO_LINK = YES;
+			};
+			name = Debug;
+		};
+		7FFC7F3E0D7E4FF100499B8E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				GCC_ENABLE_FIX_AND_CONTINUE = NO;
+				GCC_ENABLE_OBJC_GC = unsupported;
+				GCC_MODEL_TUNING = G5;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
+				INSTALL_PATH = /usr/local/lib;
+				OTHER_LDFLAGS = (
+					"-framework",
+					Foundation,
+					"-framework",
+					AppKit,
+				);
+				PREBINDING = NO;
+				PRODUCT_NAME = Informer;
+				ZERO_LINK = NO;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -355,6 +463,15 @@
 			buildConfigurations = (
 				1DBD214D08BA80EA00186707 /* Debug */,
 				1DBD214E08BA80EA00186707 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7FFC7F400D7E503600499B8E /* Build configuration list for PBXNativeTarget "Informer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7FFC7F3D0D7E4FF100499B8E /* Debug */,
+				7FFC7F3E0D7E4FF100499B8E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
