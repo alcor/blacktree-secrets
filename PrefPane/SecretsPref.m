@@ -10,8 +10,9 @@
 #import "NSImage_BLTRExtensions.h"
 
 #define foreach(x, y) id x; NSEnumerator *rwEnum = [y objectEnumerator]; while(x = [rwEnum nextObject])
-#define kSecretsURL [NSURL URLWithString:@"http://secrets.textdriven.com/info/list"]
-#define kSecretsSafeURL [NSURL URLWithString:@"http://quicksilver.meadgroup.com/secrets/list.plist"]
+#define kSecretsLiveURL [NSURL URLWithString:@"http://secrets.textdriven.com/info/list"]
+#define kSecretsSafeURL [NSURL URLWithString:@"http://secrets.textdriven.com/info/stable_safe_list"]
+#define kSecretsStableURL [NSURL URLWithString:@"http://secrets.textdriven.com/info/stable_list"]
 #define kSecretsHelpURL [NSURL URLWithString:@"http://code.google.com/p/blacktree-secrets/wiki/Help"]
 #define kSecretsEditFormatString @"http://secrets.textdriven.com/preferences/edit/%@"
 #define kSecretsSiteURL [NSURL URLWithString:@"http://secrets.textdriven.com/"]
@@ -254,16 +255,18 @@
   NSURL *url = nil;
   if ([surl isEqualToString:@"SAFE_SERVER"]) {
     url = kSecretsSafeURL;
+  } else if ([surl isEqualToString:@"STABLE_SERVER"]) {
+    url = kSecretsStableURL;
   } else if ([surl isEqualToString:@"LIVE_SERVER"]) {
-    url = kSecretsURL;
-  } if (!surl) {
-    url = kSecretsURL;
+    url = kSecretsLiveURL;
+  } else if (!surl) {
+    url = kSecretsStableURL;
   } else {
     url = [NSURL URLWithString:surl];
   }
   NSLog(@"Secrets: Loading secrets from %@", url);
   
-  NSURLRequest *request = [NSURLRequest requestWithURL:kSecretsURL
+  NSURLRequest *request = [NSURLRequest requestWithURL:url
                                            cachePolicy:NSURLRequestReloadIgnoringCacheData
                                        timeoutInterval:10.0];
   
@@ -395,7 +398,7 @@
       NSString *path = [workspace absolutePathForAppBundleWithIdentifier:ident];
 
       
-      NSString *appDictionary = [launchedAppsDictionary objectForKey:ident];
+      NSDictionary *appDictionary = [launchedAppsDictionary objectForKey:ident];
       if (appDictionary) {
         [bundle setValue:[NSNumber numberWithBool:YES] forKey:@"running"];  
         [bundle setValuesForKeysWithDictionary:appDictionary];
@@ -597,15 +600,31 @@
   NSString *widget = [thisInfo objectForKey:@"widget"];
   
 	NSCell *cell = nil;
-	if ([type isEqualToString:@"boolean"] || [type isEqualToString:@"boolean-neg"]) {
+	if ([type isEqualToString:@"boolean"]
+      || [type isEqualToString:@"boolean-neg"]  
+      || [type isEqualToString:@"array-add"]
+      || [type isEqualToString:@"dict-add"]) {
 		cell = [[[NSButtonCell alloc] init] autorelease];
+    [cell setAllowsMixedState:YES];
 		[(NSButtonCell *)cell setButtonType:NSSwitchButton];
 		[cell setTitle:@""];
 	}
   
+	if ([type isEqualToString:@"array-add-multiple"]) {
+		cell = [[[NSButtonCell alloc] init] autorelease];
+		[(NSButtonCell *)cell setButtonType:NSOnOffButton];
+    [(NSButtonCell *)cell setBezelStyle:NSTexturedRoundedBezelStyle];
+    [cell setAlignment:NSLeftTextAlignment];
+    id value = [self getUserDefaultsValueForInfo:thisInfo];
+		[cell setTitle:value ? @"Add another (delete will remove all)" : @"Add"];
+	}
+
+  
   
   if ([type isEqualToString:@"path"]) {
     cell = [[NSPathCell alloc] init];
+    
+ //   [(NSPathCell *)cell setPathStyle:NSPathStylePopUp];//:NSPathStyleNavigationBar];
     [(NSPathCell *)cell setBackgroundColor:[NSColor clearColor]];//:NSPathStyleNavigationBar];
   }
   
@@ -617,6 +636,12 @@
 		[(NSPopUpButtonCell *)cell removeAllItems];
     NSMenu *menu = [self menuForValues:[thisInfo objectForKey:@"values"]];
     [cell setMenu:menu];
+	}
+  
+  if ([widget hasPrefix:@"combo"]) {
+		cell = [[[NSComboBoxCell alloc] init] autorelease];
+    if ([[thisInfo objectForKey:@"values"] isKindOfClass:[NSArray class]])
+      [(NSComboBoxCell *)cell addItemsWithObjectValues:[thisInfo objectForKey:@"values"]];
 	}
   
   if (!cell) {
@@ -684,8 +709,6 @@
     [value autorelease];
     
     if (keypath) value = [value valueForKeyPath:keypath];
-    //if (keypath)
-    //NSLog(@"get %@ > %@ > %@", bundle, key, keypath ? keypath : @"" );
   }
   
   @catch (NSException *e) {
@@ -752,12 +775,39 @@
 }
   if ([[thisInfo objectForKey:@"current_host_only"] boolValue]) host = kCFPreferencesCurrentHost;
   BOOL isKeypath = [[thisInfo objectForKey:@"is_keypath"] boolValue];
-  return [self getUserDefaultsValueForKey:keypath
-                                   bundle:bundle 
-                                         user:user
-                                         host:host
-                                asKeyPath:isKeypath
-  ];
+  
+  
+  id value =  [self getUserDefaultsValueForKey:keypath
+                                        bundle:bundle 
+                                          user:user
+                                          host:host
+                                     asKeyPath:isKeypath];
+  
+  NSString *datatype = [thisInfo objectForKey:@"datatype"];
+  if ([datatype isEqualToString:@"array-add"] || [datatype isEqualToString:@"array-add-multiple"]) {
+    id toggleValue = [thisInfo objectForKey:@"values"];
+    if ([value containsObject:toggleValue]) {
+      // Return yes if it exists, but if we support multiple, the answer is always NO, but not nil (which is no value set)
+      // Delete can clear out all multiple adds
+      value = [NSNumber numberWithInt:[datatype isEqualToString:@"array-add-multiple"] ? NO : YES];
+    } else {
+      value = nil;
+    }
+  }
+
+  if ([datatype isEqualToString:@"dict-add"]) {
+    NSDictionary *toggleValue = [thisInfo objectForKey:@"values"];
+    
+    for (NSString *key in toggleValue) {
+      if (![[value valueForKey:key] isEqual:[toggleValue valueForKey:key]]) {
+        value = nil;
+        break;
+      }
+      value = [NSNumber numberWithBool:YES];
+    }
+  }
+  
+  return value;
   
 }
 
@@ -774,22 +824,72 @@
   NSString *keypath = [thisInfo objectForKey:@"keypath"];
   NSString *bundle = [thisInfo objectForKey:@"bundle"];
     BOOL isKeypath = [[thisInfo objectForKey:@"is_keypath"] boolValue];
-  [self setUserDefaultsValue:value
-                  forKey:keypath
-                      bundle:bundle 
-                        user:user
-                        host:host
-                   asKeyPath:isKeypath];
   
   
-  NSString *display_bundle = [thisInfo objectForKey:@"display_bundle"];
-  if (!display_bundle ) display_bundle = [thisInfo objectForKey:@"bundle"];
   
-  // Mark the bundle as dirty if it is running
-  NSDictionary *bundleInfo = [bundles objectForKey:display_bundle];
-  if ([bundleInfo valueForKey:@"running"])  
-    [bundleInfo setValue:[NSNumber numberWithBool:YES] forKey:@"dirty"];
   
+  id oldValue = [self getUserDefaultsValueForKey:keypath
+                                          bundle:bundle
+                                            user:user 
+                                            host:host 
+                                       asKeyPath:isKeypath];
+  
+  // Inject into an array if for add
+  if ([[thisInfo objectForKey:@"datatype"] isEqualToString:@"array-add"]
+    || [[thisInfo objectForKey:@"datatype"] isEqualToString:@"array-add-multiple"]) {
+    id toggleValue = [thisInfo objectForKey:@"values"];
+
+    NSMutableArray  *array = [[oldValue mutableCopy] autorelease];
+    
+    if ([value boolValue]) {
+      if (!array) array = [NSMutableArray array];
+      [array addObject:toggleValue];
+    } else {
+      // The only way this will be reached for array-add-multiple should be value==nil, so clear out
+      [array removeObject:toggleValue];
+    }
+    value = array;
+    
+  }
+  
+    // Inject into a dictionary if for add
+  if ([[thisInfo objectForKey:@"datatype"] isEqualToString:@"dict-add"]) {
+    NSDictionary *toggleValue = [thisInfo objectForKey:@"values"];
+
+    NSMutableDictionary  *dict = [[oldValue mutableCopy] autorelease];
+    if ([value boolValue]) {
+      if (!dict) dict = [NSMutableDictionary dictionary];
+      [dict addEntriesFromDictionary:toggleValue];
+    } else {
+      [dict removeObjectsForKeys:[toggleValue allKeys]];
+    }
+  }
+  
+  
+  if (![value isEqual:oldValue]) {
+    [self setUserDefaultsValue:value
+                        forKey:keypath
+                        bundle:bundle 
+                          user:user
+                          host:host
+                     asKeyPath:isKeypath];
+    
+    
+    NSString *display_bundle = [thisInfo objectForKey:@"display_bundle"];
+    if (!display_bundle ) display_bundle = [thisInfo objectForKey:@"bundle"];
+    
+    // Mark the bundle as dirty if it is running
+    NSDictionary *bundleInfo = [bundles objectForKey:display_bundle];
+    if ([bundleInfo valueForKey:@"running"])  
+      [bundleInfo setValue:[NSNumber numberWithBool:YES] forKey:@"dirty"];
+    
+  } else {
+    NSLog(@"value stayed the same"); 
+  }
+  
+  
+
+    
 }
 
 
@@ -823,12 +923,20 @@
     if (!value) {
       value = [thisInfo objectForKey:@"defaultvalue"];
     }
+    NSString *datatype = [thisInfo objectForKey:@"datatype"];
     
-    if ([[thisInfo objectForKey:@"datatype"] isEqualToString:@"boolean"])
+    if ([datatype isEqualToString:@"boolean"])
       value = [NSNumber numberWithBool:[(NSNumber *)value boolValue]];
     
-    if ([[thisInfo objectForKey:@"datatype"] isEqualToString:@"boolean-neg"])
+    if ([datatype isEqualToString:@"boolean-neg"])
       value = [NSNumber numberWithBool:![(NSNumber *)value boolValue]];
+ 
+//    if ([datatype isEqualToString:@"array-add"]) {
+//      id toggleValue = [thisInfo objectForKey:@"values"];
+//      NSLog(@" %@ contains %@" , value, toggleValue);
+//      value = [NSNumber numberWithBool:[value containsObject:toggleValue]];
+//    }
+    
     
     
     if ([[thisInfo objectForKey:@"widget"] isEqualToString:@"popup"]) {
@@ -853,26 +961,29 @@
       value = [[menu itemAtIndex:[value intValue]] representedObject];
     }
     
-    if ([[thisInfo objectForKey:@"datatype"] isEqualToString:@"float"]) {
+    NSString *datatype = [thisInfo objectForKey:@"datatype"];
+    
+   
+    if ([datatype isEqualToString:@"float"]) {
       value = [NSNumber numberWithFloat:[value floatValue]];
     }
     
-    if ([[thisInfo objectForKey:@"datatype"] isEqualToString:@"integer"]) {
+    if ([datatype isEqualToString:@"integer"]) {
       value = [NSNumber numberWithInt:[value intValue]];
     }
     
-    if ([[thisInfo objectForKey:@"datatype"] isEqualToString:@"boolean-neg"])
+    if ([datatype isEqualToString:@"boolean-neg"])
       value = [NSNumber numberWithBool:![value boolValue]];
     
+
     
     if ([value isKindOfClass:[NSString class]] && ![(NSString *)value length]) {
       value = nil;
     }
     
-    
-    [self setUserDefaultsValue:value forInfo:thisInfo];
-    
-    [aTableView display];
+      [self setUserDefaultsValue:value forInfo:thisInfo];
+      [aTableView display];
+
   }
 }
 
@@ -890,7 +1001,11 @@
   NSPredicate *predicate = [NSPredicate predicateWithFormat:@"hidden != 1"];
   if (searchPredicate) predicate = [NSCompoundPredicate andPredicateWithSubpredicates:[NSArray arrayWithObjects:predicate, searchPredicate, nil]];
   
-
+  
+  NSString *domain = [category valueForKey:@"bundle"];
+ if (domain) CFPreferencesAppSynchronize((CFStringRef)domain);
+  
+  
   NSPredicate *categoryPredicate = [category valueForKey:@"predicate"];
   
   // Don't show globals for now
@@ -1044,7 +1159,8 @@
 - (void)alertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo {
   if (returnCode) {
     [[NSWorkspace sharedWorkspace] openURL:kSecretsSiteURL];
-    [NSApp terminate];
+    [[alert window] close];
+    [NSApp terminate:nil];
   }
 }
 

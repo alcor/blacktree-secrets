@@ -14,7 +14,7 @@ void NoteCFPreferencesInfo(NSString * key, NSString * infoKey, CFPropertyListRef
   if ([key rangeOfString:@"/"].location != NSNotFound)
     key = [key stringByReplacingOccurrencesOfString:@"/" withString:@":"];
   
-  BOOL isNS = [key hasPrefix:@"NS"] || [key hasPrefix:@"_NS"] || [key hasPrefix:@"__NS"] ||  [key hasPrefix:@"Apple"] ||  [key hasPrefix:@"CF"]||  [key hasPrefix:@"_CF"];;
+  BOOL isNS = [key hasPrefix:@"NS"] || [key hasPrefix:@"WebKit"] || [key hasPrefix:@"_NS"] || [key hasPrefix:@"__NS"] ||  [key hasPrefix:@"Apple"] ||  [key hasPrefix:@"CF"] || [key hasPrefix:@"com.apple"] ||  [key hasPrefix:@"AB"] ||  [key hasPrefix:@"_CF"];;
 
   NSString *identifier = [[NSBundle mainBundle] bundleIdentifier];
   
@@ -111,20 +111,48 @@ void NoteCFPreferencesInfo(NSString * key, NSString * infoKey, CFPropertyListRef
 }
 @end
 
+CFDictionaryRef MyCFPreferencesCopyMultiple(CFArrayRef keysToFetch, CFStringRef applicationID, CFStringRef userName, CFStringRef hostName){
+  printf("multiple");
+  return CFPreferencesCopyMultiple( keysToFetch,  applicationID,  userName,  hostName);
+}
+
+
+void MyCFPreferencesAddSuitePreferencesToApp(CFStringRef applicationID, CFStringRef suiteID) {
+  NSLog(@"addsuite %@", applicationID);
+}
+
+Boolean MyCFPreferencesGetAppBooleanValue(CFStringRef key, CFStringRef applicationID, Boolean *keyExistsAndHasValidFormat) {
+  NoteCFPreferencesInfo((NSString *)key, @"type", @"bool", applicationID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+  return CFPreferencesGetAppBooleanValue( key,  applicationID,  keyExistsAndHasValidFormat);
+}
+
+CFIndex MyCFPreferencesGetAppIntegerValue(CFStringRef key, CFStringRef applicationID, Boolean *keyExistsAndHasValidFormat) {
+  NoteCFPreferencesInfo((NSString *)key, @"type", @"integer", applicationID, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
+  return CFPreferencesGetAppIntegerValue( key,  applicationID,  keyExistsAndHasValidFormat);
+}
+
+DYLD_INTERPOSE(MyCFPreferencesGetAppIntegerValue, CFPreferencesGetAppIntegerValue)
+
+
 CFPropertyListRef MyCFPreferencesCopyValue (CFStringRef key,
                                             CFStringRef applicationID,
                                             CFStringRef userName,
                                             CFStringRef hostName) {
   
   CFPropertyListRef value = CFPreferencesCopyValue(key, applicationID, userName, hostName);
-
   NoteCFPreferencesInfo((NSString *)key, @"value", value ? value : @"(null)", applicationID, userName, hostName);
   NoteCFPreferencesInfo((NSString *)key, @"key", key, applicationID, userName, hostName);
   return value;
 }
 
+DYLD_INTERPOSE(MyCFPreferencesCopyValue, CFPreferencesCopyValue)
+
+
 __attribute__ ((constructor))
 void MyConstructor(void) {
+  NSAutoreleasePool *pool = [NSAutoreleasePool new];
+  
+  NSLog(@"Informer loaded");
   if ([[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.blacktree.Quicksilver"]) return;
   if ([[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.apple.systempreferences"]) return;
   
@@ -153,8 +181,8 @@ void MyConstructor(void) {
                                  class_getInstanceMethod(D, @selector(doubleForKey:)));
   method_exchangeImplementations(class_getInstanceMethod(D, @selector(secretStringArrayForKey:)),
                                  class_getInstanceMethod(D, @selector(stringArrayForKey:)));  
+  
+  [pool release];
 }
 
 
-
-DYLD_INTERPOSE(MyCFPreferencesCopyValue, CFPreferencesCopyValue)

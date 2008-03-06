@@ -23,7 +23,7 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>1.0b18</string>
+	<string>1.0b19</string>
 	<key>NSMainNibFile</key>
 	<string>SecretsPref</string>
 	<key>NSPrefPaneIconFile</key>
