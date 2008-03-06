@@ -11,7 +11,6 @@
 @interface SecretsPref : NSPreferencePane 
 {
 	IBOutlet NSView *sidebarView;
-	IBOutlet NSSplitView *splitView;
 	
 	NSArray *categories;
 	NSMutableDictionary *bundles;

@@ -22,7 +22,6 @@
 		7FFC7F670D7E514000499B8E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 089C1672FE841209C02AAC07 /* Foundation.framework */; };
 		8D202CEA0486D31800D8A456 /* Secrets_Prefix.pch in Headers */ = {isa = PBXBuildFile; fileRef = 32DBCFA20370C41700C91783 /* Secrets_Prefix.pch */; };
 		8D202CEB0486D31800D8A456 /* SecretsPref.h in Headers */ = {isa = PBXBuildFile; fileRef = F506C03C013D9D7901CA16C8 /* SecretsPref.h */; };
-		8D202CED0486D31800D8A456 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C167DFE841241C02AAC07 /* InfoPlist.strings */; };
 		8D202CF10486D31800D8A456 /* SecretsPref.m in Sources */ = {isa = PBXBuildFile; fileRef = F506C03D013D9D7901CA16C8 /* SecretsPref.m */; };
 		8D202CF30486D31800D8A456 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7ADFEA557BF11CA2CBB /* Cocoa.framework */; };
 		8D202CF40486D31800D8A456 /* PreferencePanes.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F506C035013D953901CA16C8 /* PreferencePanes.framework */; };
@@ -30,7 +29,6 @@
 
 /* Begin PBXFileReference section */
 		089C1672FE841209C02AAC07 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
-		089C167EFE841241C02AAC07 /* English */ = {isa = PBXFileReference; fileEncoding = 10; lastKnownFileType = text.plist.strings; name = English; path = English.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		089C167FFE841241C02AAC07 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		1058C7ADFEA557BF11CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		32DBCFA20370C41700C91783 /* Secrets_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Secrets_Prefix.pch; sourceTree = "<group>"; };
@@ -107,7 +105,6 @@
 				7FD490F10D7A865000DD7588 /* Application.png */,
 				8D202CF70486D31800D8A456 /* Info.plist */,
 				7FAA8C690D753E1C00F81F30 /* Secrets-small.png */,
-				089C167DFE841241C02AAC07 /* InfoPlist.strings */,
 				7FD4919A0D7A948B00DD7588 /* Secrets.icns */,
 				7F704BA10D6EAD5C00879138 /* SecretsPref.xib */,
 			);
@@ -258,7 +255,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8D202CED0486D31800D8A456 /* InfoPlist.strings in Resources */,
 				7F704BA30D6EAD5C00879138 /* SecretsPref.xib in Resources */,
 				7FAA8C6A0D753E1C00F81F30 /* Secrets-small.png in Resources */,
 				7FD490F20D7A865000DD7588 /* Application.png in Resources */,
@@ -317,14 +313,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
-		089C167DFE841241C02AAC07 /* InfoPlist.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				089C167EFE841241C02AAC07 /* English */,
-			);
-			name = InfoPlist.strings;
-			sourceTree = "<group>";
-		};
 		7F704BA10D6EAD5C00879138 /* SecretsPref.xib */ = {
 			isa = PBXVariantGroup;
 			children = (

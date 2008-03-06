@@ -23,7 +23,7 @@
 - (id)getUserDefaultsValueForKey:(NSString *)path bundle:(NSString *)bundle user:(CFStringRef)user host:(CFStringRef)host asKeyPath:(BOOL)asKeyPath;
 
 - (id)getUserDefaultsValueForInfo:(NSDictionary *)thisInfo;
-
+- (NSArray *)secretsArray;
 - (void)updateEntries;
 @end
 
@@ -136,6 +136,17 @@
                               contextInfo:NULL];
   }  
   
+  
+  NSDate *lastDownloadDate = [[NSUserDefaults standardUserDefaults] objectForKey:@"SecretsLastDownloadDate"];
+  float interval = [[NSUserDefaults standardUserDefaults] floatForKey:@"SecretsDownloadInterval"];
+  if (interval < 60) interval = 7 * 24 * 60 * 60;
+  if (interval < 7 * 24 * 60 * 60) interval = 60 * 60; // Don't allow auto-checking more than once an hour
+ 
+  if (![self secretsArray]
+      || !lastDownloadDate 
+      || -[lastDownloadDate timeIntervalSinceNow] > interval) {
+    [self reloadInfo:nil];
+  }
 }
 
 - (void)willUnselect {
@@ -189,7 +200,7 @@
                                          
                                          [NSSortDescriptor descriptorWithKey:@"group"
                                                                    ascending:YES],
-                                         [NSSortDescriptor descriptorWithKey:@"text"
+                                         [NSSortDescriptor descriptorWithKey:@"title"
                                                                    ascending:YES
                                                                     selector:@selector(caseInsensitiveCompare:)],
                                          
@@ -229,8 +240,6 @@
   NSString *path = [@"~/Library/Caches/Secrets.plist" stringByStandardizingPath];
   NSData *data = [NSData dataWithContentsOfFile:path];
   
-  if (!data) data = [self downloadData];
-  
   NSArray *array = [NSPropertyListSerialization 
                     propertyListFromData:data
                     mutabilityOption:NSPropertyListMutableContainers
@@ -240,6 +249,10 @@
 }
 
 - (NSData *)downloadData {
+  
+  [[NSUserDefaults standardUserDefaults] setValue:[NSDate date] forKey:@"SecretsLastDownloadDate"];
+  [[NSUserDefaults standardUserDefaults] synchronize];
+  
   downloading = YES;
   [progressField setStringValue:@"Loading Data"];
   [progressField display];
@@ -317,7 +330,7 @@
   NSImage *image = [[[NSImage alloc] initWithContentsOfFile:imagePath] autorelease];
   
   NSMutableDictionary *topSecrets = [NSMutableDictionary dictionaryWithObjectsAndKeys:
-                                     @"TOP SECRETS", @"text",
+                                     @"Top Secrets", @"text",
                                      [NSNumber numberWithInt:3], @"rank", 
                                      image , @"image", 
                                      [NSNumber numberWithBool:YES] , @"bold",
@@ -384,7 +397,7 @@
     
     
     if ([entry objectForKey:@"top_secret"]) {
-      [entry setValue:[NSColor colorWithDeviceRed:0.0 green:0.5 blue:0.0 alpha:1.0] forKey:@"textColor"];  
+      [entry setValue:[NSColor colorWithDeviceRed:0.0 green:0.0 blue:0.5 alpha:1.0] forKey:@"textColor"];  
     }
     
     if (!ident) continue;
@@ -899,6 +912,22 @@
   [entriesTable display];
 }
 
+
+- (NSRect)splitView:(NSSplitView *)splitView 
+      effectiveRect:(NSRect)proposedEffectiveRect 
+       forDrawnRect:(NSRect)drawnRect
+   ofDividerAtIndex:(NSInteger)dividerIndex {
+  drawnRect.size.height = splitView.frame.size.height - drawnRect.origin.y;
+  return drawnRect;
+}
+
+- (CGFloat)splitView:(NSSplitView *)sender constrainMinCoordinate:(CGFloat)proposedMin ofSubviewAt:(NSInteger)offset {
+  return sender.frame.size.height - 81;  
+}
+- (CGFloat)splitView:(NSSplitView *)sender constrainMaxCoordinate:(CGFloat)proposedMin ofSubviewAt:(NSInteger)offset {
+  return sender.frame.size.height - 20;  
+}
+
 #pragma mark -
 
 - (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(int)rowIndex {
@@ -1138,15 +1167,27 @@
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSHTTPURLResponse *)response {
-  NSString *version = [[response allHeaderFields] valueForKey:@"Secrets-Version"];
-  NSString *currentVersion = [[NSBundle bundleForClass:[self class]] objectForInfoDictionaryKey:(NSString *)kCFBundleVersionKey];
+
+  NSInteger statusCode = [response statusCode];
+  if (statusCode >= 400) {
+    [connection cancel];
+    [self connection:connection didFailWithError:[NSError errorWithDomain:@"HTTP Status" code:500 userInfo:
+                                                  [NSDictionary dictionaryWithObjectsAndKeys:NSLocalizedDescriptionKey,[NSHTTPURLResponse localizedStringForStatusCode:500], nil]]];
   
+  }
+  
+  
+  
+  NSString *version = [[response allHeaderFields] valueForKey:@"Secrets-Version"];
+  NSString *message = [[response allHeaderFields] valueForKey:@"Secrets-Message"];
+  NSString *currentVersion = [[NSBundle bundleForClass:[self class]] objectForInfoDictionaryKey:(NSString *)kCFBundleVersionKey];
+  if (!message) message = @"";
   if ([version compare:currentVersion]) {
     NSAlert *updateAlert = [NSAlert alertWithMessageText:@"Update available!"
                                            defaultButton:@"Get it!" 
                                          alternateButton:@"Later" 
                                              otherButton:nil
-                               informativeTextWithFormat:@"Secrets %@ has been released.", version];
+                               informativeTextWithFormat:@"Secrets %@ has been released. %@", version, message];
     
     [updateAlert beginSheetModalForWindow:[[self mainView] window]
                             modalDelegate:self didEndSelector:@selector(alertDidEnd:returnCode:contextInfo:)
