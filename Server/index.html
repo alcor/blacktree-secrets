@@ -1,0 +1,55 @@
+<html>
+<head>
+	<link type="text/css" rel="stylesheet" href="/stylesheets/scaffold.css" />
+	<link rel="alternate" type="application/rss+xml" title="Updated Secrets" href="rss/updated" />
+	<link rel="alternate" type="application/rss+xml" title="New Secrets" href="rss/new" />
+</head>
+<body>
+	<p align="center"><a href="http://secrets.textdriven.com/preferences/list"><img border="0" src="/images/Secrets.png"></a><br>
+		<br>
+		<!-- <%= link_to 'Add a secret', :action => 'new' %> -  -->
+		<a href="http://code.google.com/p/blacktree-secrets/wiki/Help">Help</a> - 
+		<a href="http://blacktree-secrets.googlecode.com/">Source Code</a> - 
+		<a href="http://groups.google.com/group/blacktree-secrets">Discussion Group</a> - 
+		<a href="http://code.google.com/p/blacktree-secrets/issues/list">Issue Tracker</a> - 
+		<a href="http://blacktree-secrets.googlecode.com/files/Secrets_1.0.0.zip">PrefPane</a> (10.5 only)
+		<br>
+		<font color="red"> Secrets is in Beta and many of these options can <b>harm your system</b> if used improperly.</font><br> 
+	</p>
+
+	<hr width="600">
+	<table width="600" cellpadding="5" align="center" border="0">
+		
+		{% for secret in secrets %}
+		
+		<tr {% if secret.hidden or secret.is_broken %} style="opacity: 0.3;"{% endif %} >
+			<td align="right" valign="top">
+				{{ secret.display_app|escape }}
+				{% if secret.minversion %} <!-- {#and preference.minversion.length#} -->
+				({{ secret.minversion }})
+				{% endif %}
+			</td>
+			<td>
+				<div style="width:32; height:32; background:url('http://quicksilver.meadgroup.com/images/bundleicons/{{secret.display_icon}}.png')"></div>
+			</td>
+			<td valign="top">
+				<a href="edit?id={{secret.key.id}}" style="{% if secret.hidden or secret.is_broken %}color: gray;{% endif %}" >{{secret.title}}</a>
+				<br />
+				<span class="detail">{{ secret.default_string }}</span>
+			</td>
+		</tr>
+		
+		{% endfor %}
+		
+	</table>
+
+	<br />
+	<hr width="600">
+
+	<center>
+	<a href="">Show full list</a>
+</center>
+
+<a href="{{ url }}">{{ url_linktext }}</a>
+</body>
+</html>
