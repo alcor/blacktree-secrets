@@ -10,12 +10,12 @@
 #import "NSImage_BLTRExtensions.h"
 
 #define foreach(x, y) id x; NSEnumerator *rwEnum = [y objectEnumerator]; while(x = [rwEnum nextObject])
-#define kSecretsLiveURL [NSURL URLWithString:@"http://secrets.textdriven.com/info/list"]
-#define kSecretsSafeURL [NSURL URLWithString:@"http://secrets.textdriven.com/info/stable_safe_list"]
-#define kSecretsStableURL [NSURL URLWithString:@"http://secrets.textdriven.com/info/stable_list"]
+#define kSecretsLiveURL [NSURL URLWithString:@"http://secrets.blacktree.com/plist"]
+#define kSecretsSafeURL [NSURL URLWithString:@"http://secrets.blacktree.com/plist"]
+#define kSecretsStableURL [NSURL URLWithString:@"http://secrets.blacktree.com/plist"]
 #define kSecretsHelpURL [NSURL URLWithString:@"http://code.google.com/p/blacktree-secrets/wiki/Help"]
-#define kSecretsEditFormatString @"http://secrets.textdriven.com/preferences/edit/%@"
-#define kSecretsSiteURL [NSURL URLWithString:@"http://secrets.textdriven.com/"]
+#define kSecretsEditFormatString @"http://secrets.blacktree.com/edit?id=%@"
+#define kSecretsSiteURL [NSURL URLWithString:@"http://secrets.blacktree.com/"]
 
 
 @interface SecretsPref ()
@@ -47,14 +47,11 @@
   if ([type isEqualToString:@"path"]) {
     NSOpenPanel *panel = [NSOpenPanel openPanel];
     NSString *directory = [self tableView:entriesTable objectValueForTableColumn:column row:row];
-    //directory = [directory stringByDeletingLastPathComponent];
-    NSLog(@"directory %@", directory);
     [panel setDirectory:directory];
     [panel setCanChooseDirectories:YES];
     [panel setResolvesAliases:YES];
     NSInteger integer = [panel runModalForDirectory:[directory stringByDeletingLastPathComponent] file:[directory lastPathComponent]];
     if (integer) {
-    NSLog(@"inte %d", integer, [panel filenames]);
     NSString *path = [[panel filenames] lastObject];
     [self tableView:entriesTable setObjectValue:path forTableColumn:column row:row];
   }
@@ -111,6 +108,10 @@
 }
 
 - (void) willSelect {
+  previousLaunchDate = [[NSUserDefaults standardUserDefaults] objectForKey:@"SecretsLastDownloadDate"];
+  // Show changes from the last week
+  previousLaunchDate = [[NSDate dateWithTimeIntervalSinceNow:-7*24*60*60] earlierDate:previousLaunchDate];
+  [previousLaunchDate retain];
   [self loadInfo:nil];
 }
 
@@ -363,6 +364,18 @@
   [bundles setValue:global forKey:@".GlobalPreferences"];
   
   
+  NSMutableDictionary *recent = [NSMutableDictionary dictionaryWithObjectsAndKeys:
+                                 @"New Secrets", @"text",
+                                 [NSImage imageNamed:@"NSNetwork"] , @"image",
+                                 [NSNumber numberWithInt:1], @"rank", 
+                                 [NSNumber numberWithBool:YES] , @"hideGroups",
+                                 [NSPredicate predicateWithFormat:@"created > %@", previousLaunchDate],  @"predicate",
+
+                                 nil];
+  [bundles setValue:recent forKey:@"Recent"];
+  
+  
+  
   NSArray *launchedApps = [[NSWorkspace sharedWorkspace] launchedApplications];
   NSMutableDictionary *launchedAppsDictionary = [NSMutableDictionary dictionaryWithObjects:launchedApps
                                                                      forKeys:[launchedApps valueForKey:@"NSApplicationBundleIdentifier"]];
@@ -499,6 +512,7 @@
 
 
 - (NSString *)tableView:(NSTableView *)aTableView toolTipForCell:(NSCell *)aCell rect:(NSRectPointer)rect tableColumn:(NSTableColumn *)aTableColumn row:(int)row mouseLocation:(NSPoint)mouseLocation { 
+  if (aTableView = categoriesTable) return nil;
 	id thisInfo = [[entriesController arrangedObjects] objectAtIndex:row];
   
   NSString *tip = [thisInfo objectForKey:@"description"];
@@ -574,6 +588,7 @@
       return;
     }  
     id thisInfo = [[entriesController arrangedObjects] objectAtIndex:row]; 	
+    
     NSColor * textColor = [thisInfo objectForKey:@"textColor"];
     
     if (row == [tableView selectedRow]) {
@@ -637,7 +652,7 @@
   if ([type isEqualToString:@"path"]) {
     cell = [[NSPathCell alloc] init];
     
- //   [(NSPathCell *)cell setPathStyle:NSPathStylePopUp];//:NSPathStyleNavigationBar];
+    //   [(NSPathCell *)cell setPathStyle:NSPathStylePopUp];//:NSPathStyleNavigationBar];
     [(NSPathCell *)cell setBackgroundColor:[NSColor clearColor]];//:NSPathStyleNavigationBar];
   }
   
@@ -1029,7 +1044,6 @@
 
   NSPredicate *predicate = [NSPredicate predicateWithFormat:@"hidden != 1"];
   if (searchPredicate) predicate = [NSCompoundPredicate andPredicateWithSubpredicates:[NSArray arrayWithObjects:predicate, searchPredicate, nil]];
-  
   
   NSString *domain = [category valueForKey:@"bundle"];
  if (domain) CFPreferencesAppSynchronize((CFStringRef)domain);

@@ -30,7 +30,7 @@
   IBOutlet NSTextField *progressField;
   BOOL downloading;
   BOOL showInfo;
-  
+  NSDate *previousLaunchDate;
   NSURLConnection *fetchConnection;
   NSMutableData   *fetchData;
   NSPredicate *searchPredicate;
