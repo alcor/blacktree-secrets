@@ -1,21 +1,62 @@
-<p align="center"><a href="http://secrets.textdriven.com/preferences/list"><img border="0" src="/images/Secrets.png"></a><br>
+<html>
+<head>
+	<link type="text/css" rel="stylesheet" href="/stylesheets/secrets.css">
+	<script type="text/javascript" src="/javascript/jquery.js"></script>
+	<link rel="alternate" type="application/rss+xml" title="Updated Secrets" href="rss/updated">
+	<link rel="alternate" type="application/rss+xml" title="New Secrets" href="rss/new">
+</head>
+<body>
+<script type="text/javascript" src="/javascript/jquery.js" />
+<p align="center"><a href="/"><img border="0" src="/images/Secrets.png"></a><br>
 
 <span class="detail">
-Tell a Secret</span><br>
+	
+	
+{% if id %}
+Secret #{{id}}
+{% else %}
+
+{% if loggedin %}Tell us a Secret...{% else %}Sign in to add a secret{% endif %}
+
+<br>
+This secret will be editable by anyone for 3 days.<br>
+{% endif %}
+
+
+<br><a href="http://code.google.com/p/blacktree-secrets/wiki/EditorTips" target="_new">Learn how to fill out these fields</a>
+
+- <a href="{{url}}">{% if loggedin %}Sign out{% else %}Sign in{% endif %}</a>
+</span><br>
 </p>
 
+<form id="editform" method="POST" {% if iseditable %} action="/edit" {% endif %} >
 <center>
-
-<form method="POST" action="/new">
 <table>
 	{{form}}
-
-<p>
-<a href="http://code.google.com/p/blacktree-secrets/wiki/EditorTips" target="_new">Learn how to fill out these fields</a><br>This secret will be editable for 3 days.
-
-  </center>
 </table>
-<input type="hidden" name="_id" value="{{id}}">'
+<p>
+<br>
+{% if iseditable %}
+<input type="hidden" name="_id" value="{{id}}">
 <input type="submit">
+{% else %}
+<script language="javascript">
+$("input").attr("disabled", "disabled");
+$("textarea").attr("disabled", "disabled");
+$("select").attr("disabled", "disabled");
+</script>
+{% endif %}
 </form>
 
+
+{% if isadmin %}
+<form id="editform" method="POST" action="/delete" >
+	<input type="hidden" name="_id" value="{{id}}">
+	<input type="submit" value="Delete">
+</form>
+{% endif %}
+</center>
+<!-- by {{ secret.author }}. edit {{ secret.editor }}- {% if isowned %} owned {% endif %} {% if isadmin %} admin {% endif %} -->
+
+</body>
+</html>

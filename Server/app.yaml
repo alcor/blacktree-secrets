@@ -5,12 +5,24 @@ api_version: 1
 
 handlers:
 - url: /stylesheets
-  static_dir: stylesheets
+  static_dir: static/stylesheets
+
+- url: /javascript
+  static_dir: static/javascript
+
+- url: /favicon.ico
+  static_files: static/favicon.ico
+  upload: static/favicon.ico
+  
+- url: /robots.txt
+  static_files: static/robots.txt
+  upload: static/robots.txt
+    
 - url: /images
-  static_dir: images
+  static_dir: static/images
 
 - url: /load
   script: myloader.py
   
 - url: /.*
-  script: helloworld.py
+  script: secrets.py

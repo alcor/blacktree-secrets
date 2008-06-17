@@ -1,12 +1,12 @@
 import cgi
 import wsgiref.handlers
 import os
-
+import datetime
 from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext import db
 from google.appengine.ext.webapp import template
-
+from google.appengine.api import memcache
 from google.appengine.ext.db import djangoforms
 
 import xml.etree.cElementTree as ET
@@ -42,21 +42,21 @@ class Secret(db.Model):
   editor = db.UserProperty()
   
   old_id = db.IntegerProperty()
-  bundle = db.StringProperty()
+  bundle = db.StringProperty(verbose_name="Bundle ID")
   display_bundle = db.StringProperty()
   app_reference = db.ReferenceProperty(Bundle)
-  keypath = db.StringProperty()
+  keypath = db.StringProperty(verbose_name="Key")
   datatype = db.StringProperty()
   title = db.StringProperty()
-  defaultvalue = db.StringProperty()
+  defaultvalue = db.StringProperty(verbose_name="Default Value")
   units = db.StringProperty()
   widget = db.StringProperty()
   username = db.StringProperty()
   hostname = db.StringProperty()
-  minversion = db.StringProperty()
-  maxversion = db.StringProperty()
-  minosversion = db.StringProperty()
-  maxosversion = db.StringProperty()
+  minversion = db.StringProperty(verbose_name="Min Version")
+  maxversion = db.StringProperty(verbose_name="Max Version")
+  minosversion = db.StringProperty(verbose_name="Min OS Version")
+  maxosversion = db.StringProperty(verbose_name="Max OS Version")
   group = db.StringProperty()
   placeholder = db.StringProperty()
   
@@ -72,13 +72,16 @@ class Secret(db.Model):
   for_developers = db.BooleanProperty()
   top_secret = db.BooleanProperty()
   is_keypath = db.BooleanProperty()
-  deleted = db.BooleanProperty()
+  deleted = db.BooleanProperty(default=False)
   is_broken = db.BooleanProperty()
   dangerous = db.BooleanProperty()
   
   created_at = db.DateTimeProperty(auto_now_add=True)
   updated_at = db.DateTimeProperty(auto_now=True)
   
+  def is_editable(self):
+    return (datetime.datetime.today() - self.created_at) < datetime.timedelta(minutes=3)
+    
   def default_string(self):
     valid = True
     
@@ -156,96 +159,149 @@ class Secret(db.Model):
 class SecretForm(djangoforms.ModelForm):
   class Meta:
     model = Secret
-    exclude = ['author', 'editor', 'app_reference', 'deleted', 'old_id']
+    exclude = ['hostname', 'username', 'author', 'editor', 'app_reference', 'deleted', 'top_secret', 'old_id']
     
 class PlistSecret(webapp.RequestHandler):
   def get(self):
     secrets = Secret.all().order('-created_at')
 
-    if users.get_current_user():
-      url = users.create_logout_url(self.request.uri)
-      url_linktext = 'Logout'
-    else:
-      url = users.create_login_url(self.request.uri)
-      url_linktext = 'Login'
-
     template_values = {
-      'secrets': secrets,
-      'url': url,
-      'url_linktext': url_linktext,
+      'secrets': secrets    
       }
     
-    self.response.headers['Secrets-Version'] = "1.0.2"
+    self.response.headers['Secrets-Version'] = "1.0.4"
     self.response.headers['Content-Type'] = 'text/xml; charset=utf-8'
-    self.response.out.write(template.render('plist.xml', template_values))
+    output = memcache.get("plist")
+    if output is None:
+      output = template.render('plist.xml', template_values)
+      memcache.add("plist", output, 60*60)
+      self.response.headers['Cached'] = 'yes'
+    self.response.out.write(output)
 
 class MainPage(webapp.RequestHandler):
   def get(self):
-    secrets = Secret.all().order('-created_at')
-
+    query = Secret.all()
+    
+    showall = self.request.get('show') == 'all'
+    showrecent = self.request.get('show') == 'recent'
+    cachename = "index-" + self.request.get('show')
+    
+    output = memcache.get(cachename)
+    if output is not None:
+      self.response.out.write(output)
+      self.response.out.write("<!--loaded from cache-->")
+      #self.response.out.write(memcache.get_stats())
+    else:
+      query.filter('deleted ==', False)
+      if showrecent == True:
+        query = db.GqlQuery("SELECT * FROM Secret WHERE deleted = False "
+                            "ORDER BY created_at DESC")
+        secrets = query.fetch(10)
+      elif showall == True:
+        query = db.GqlQuery("SELECT * FROM Secret WHERE deleted = False "
+                              "ORDER BY created_at DESC")
+        secrets = query
+      else:
+        query.filter('top_secret =', True)
+        secrets = query
+      
+      template_values = {'secrets': secrets, 'showall': showall}
+      
+      path = os.path.join(os.path.dirname(__file__), 'index.html')
+      output = template.render('index.html', template_values)
+      memcache.add(cachename, output, 60*60) 
+      self.response.out.write(output)
+    
+class DeleteSecret(webapp.RequestHandler):
+  def post(self):
+    id = self.request.get('_id') 
+    item = Secret.get(db.Key.from_path('Secret', int(id)))
+    item.deleted = True
+    item.put()
+    self.redirect('/')
+    
+class EditSecret(webapp.RequestHandler):
+  def get(self):
     if users.get_current_user():
       url = users.create_logout_url(self.request.uri)
-      url_linktext = 'Logout'
+      loggedin = 1
     else:
       url = users.create_login_url(self.request.uri)
-      url_linktext = 'Login'
-
+      loggedin = 0
+    isadmin = users.is_current_user_admin()
+    id = self.request.get('id')
     template_values = {
-      'secrets': secrets,
-      'url': url,
-      'url_linktext': url_linktext,
-      }
-
-    path = os.path.join(os.path.dirname(__file__), 'index.html')
-    self.response.out.write(template.render('index.html', template_values))
-    
-class NewSecret(webapp.RequestHandler):
-  def get(self):
-    self.response.out.write(template.render('form.html', {'form':SecretForm()}))
-
+      'id':id,
+      'isadmin':isadmin,
+      'loggedin':loggedin,
+      'url': url
+    }
+    if id:
+      item = Secret.get(db.Key.from_path('Secret', int(id)))
+      isowned = (item.author != None) & (item.author == users.get_current_user());
+      template_values['isowned'] = isowned
+      template_values['iseditable'] = isadmin | isowned | (item.is_editable() & loggedin)
+      template_values['form'] = SecretForm(instance=item)
+      template_values['secret'] = item
+    else:
+      template_values['form'] = SecretForm()
+      template_values['iseditable'] = loggedin
+      
+    self.response.out.write(template.render('form.html', template_values))
+  
   def post(self):
-    data = SecretForm(data = self.request.POST)
+    id = self.request.get('_id') 
+    
+    if id:
+      item = Secret.get(db.Key.from_path('Secret', int(id)))
+      data = SecretForm(data=self.request.POST, instance=item)
+    else:
+      data = SecretForm(data = self.request.POST)
+    
     if data.is_valid():
       # Save the data, and redirect to the view page
       entity = data.save(commit=False)
+      if not id:
+          entity.author = users.get_current_user()
       entity.editor = users.get_current_user()
       entity.put()
       self.redirect('/')
-    else:
-      self.response.out.write(template.render('form.html', {'form':data}))
-      # Reprint the form
-
-class EditSecret(webapp.RequestHandler):
-  def get(self):
-    id = int(self.request.get('id'))
-    item = Secret.get(db.Key.from_path('Secret', id))
-    self.response.out.write(template.render('form.html', {'form':SecretForm(instance=item), 'id':id}))
-
-  def post(self):
-    id = int(self.request.get('_id'))
-    item = Secret.get(db.Key.from_path('Secret', id))
-    data = SecretForm(data=self.request.POST, instance=item)
-    if data.is_valid():
-      # Save the data, and redirect to the view page
-      entity = data.save(commit=False)
-      entity.added_by = users.get_current_user()
-      entity.put()
-      self.redirect('/items.html')
+      memcache.flush_all()
     else:
       # Reprint the form
-      self.response.out.write(template.render('form.html', {'form':data, 'id':id}))
-class PurgeSecret(webapp.RequestHandler):
+      if id:
+        self.response.out.write(template.render('form.html', {'form':data, 'id':id}))
+      else:
+        self.response.out.write(template.render('form.html', {'form':data}))
+      
+class PurgeSecrets(webapp.RequestHandler):
   def get(self):
     results = Secret.all();
     for result in results:
       result.delete() 
-                                                                               
+     
+
+class RSSNewSecret(webapp.RequestHandler):
+  def get(self):
+    secrets = Secret.all().order('-created_at').fetch(10)
+    self.response.headers['Content-Type'] = 'text/rss+xml; charset=utf-8'
+    self.response.out.write(template.render("rss.xml", {'secrets':secrets}))
+    
+class RSSUpdatedSecret(webapp.RequestHandler):
+   def get(self):
+     secrets = Secret.all().order('-updated_at').fetch(10)
+     self.response.headers['Content-Type'] = 'text/rss+xml; charset=utf-8'
+     self.response.out.write(template.render("rss.xml", {'secrets':secrets}))
+    
+                                                                          
 def main():
   application = webapp.WSGIApplication(
-                                       [('/new', NewSecret),
+                                       [('/rss/updated', RSSUpdatedSecret),
+                                        ('/rss/new', RSSNewSecret),
+                                        ('/delete',DeleteSecret),
                                         ('/edit', EditSecret),
                                         ('/plist', PlistSecret),
-                                        ('/purge', PurgeSecret),
+                                        ('/purge', PurgeSecrets),
                                         ('/', MainPage)],
                                        debug=True)
   wsgiref.handlers.CGIHandler().run(application)

@@ -10,25 +10,49 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-# Unused in query history -- copied from input.
-- kind: Greeting
-  properties:
-  - name: date
-    direction: desc
-
-# Used 37 times in query history.
+# Used 39 times in query history.
 - kind: Secret
   properties:
   - name: created_at
     direction: desc
 
-# Unused in query history -- copied from input.
+# Used 3 times in query history.
 - kind: Secret
   properties:
-  - name: created_on
+  - name: created_at
+    direction: desc
+  - name: updated_at
     direction: desc
 
-# Unused in query history -- copied from input.
+# Used 21 times in query history.
+- kind: Secret
+  properties:
+  - name: deleted
+  - name: created_at
+    direction: desc
+
+# Used 2 times in query history.
+- kind: Secret
+  properties:
+  - name: deleted
+    direction: desc
+
+# Used 4 times in query history.
+- kind: Secret
+  properties:
+  - name: deleted
+    direction: desc
+  - name: created_at
+    direction: desc
+
+# Used 19 times in query history.
+- kind: Secret
+  properties:
+  - name: top_secret
+  - name: created_at
+    direction: desc
+
+# Used 15 times in query history.
 - kind: Secret
   properties:
   - name: updated_at
