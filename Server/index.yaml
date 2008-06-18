@@ -24,7 +24,7 @@ indexes:
   - name: updated_at
     direction: desc
 
-# Used 21 times in query history.
+# Used 22 times in query history.
 - kind: Secret
   properties:
   - name: deleted
