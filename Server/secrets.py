@@ -174,7 +174,7 @@ class PlistSecret(webapp.RequestHandler):
     output = memcache.get("plist")
     if output is None:
       output = template.render('plist.xml', template_values)
-      memcache.add("plist", output, 60*60)
+      memcache.add("plist", output)
       self.response.headers['Cached'] = 'yes'
     self.response.out.write(output)
 
@@ -209,7 +209,7 @@ class MainPage(webapp.RequestHandler):
       
       path = os.path.join(os.path.dirname(__file__), 'index.html')
       output = template.render('index.html', template_values)
-      memcache.add(cachename, output, 60*60) 
+      memcache.add(cachename, output) 
       self.response.out.write(output)
     
 class DeleteSecret(webapp.RequestHandler):
@@ -282,17 +282,26 @@ class PurgeSecrets(webapp.RequestHandler):
      
 
 class RSSNewSecret(webapp.RequestHandler):
-  def get(self):
-    secrets = Secret.all().order('-created_at').fetch(10)
-    self.response.headers['Content-Type'] = 'text/rss+xml; charset=utf-8'
-    self.response.out.write(template.render("rss.xml", {'secrets':secrets}))
+  def get(self):    
+    output = memcache.get("rss-new")
+    if output is None:
+      secrets = Secret.all().order('-created_at').fetch(10)
+      output = template.render("rss.xml", {'secrets':secrets})
+      memcache.add("rss-new", output)
+
+    self.response.headers['Content-Type'] = 'text/rss+xml; charset=utf-8'      
+    self.response.out.write(output)
     
 class RSSUpdatedSecret(webapp.RequestHandler):
-   def get(self):
-     secrets = Secret.all().order('-updated_at').fetch(10)
-     self.response.headers['Content-Type'] = 'text/rss+xml; charset=utf-8'
-     self.response.out.write(template.render("rss.xml", {'secrets':secrets}))
-    
+  def get(self):
+    output = memcache.get("rss-updated")
+    if output is None:
+      secrets = Secret.all().order('-updated_at').fetch(10)
+      output = template.render("rss.xml", {'secrets':secrets})
+      memcache.add("rss-updated", output)
+   
+    self.response.headers['Content-Type'] = 'text/rss+xml; charset=utf-8'
+    self.response.out.write(output)
                                                                           
 def main():
   application = webapp.WSGIApplication(
