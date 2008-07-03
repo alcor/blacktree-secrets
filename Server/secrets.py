@@ -40,8 +40,8 @@ DATA_TYPES = (
 class Secret(db.Model):
   author = db.UserProperty()
   editor = db.UserProperty()
-  
   old_id = db.IntegerProperty()
+
   bundle = db.StringProperty(verbose_name="Bundle ID")
   display_bundle = db.StringProperty()
   app_reference = db.ReferenceProperty(Bundle)
@@ -59,7 +59,7 @@ class Secret(db.Model):
   maxosversion = db.StringProperty(verbose_name="Max OS Version")
   group = db.StringProperty()
   placeholder = db.StringProperty()
-  
+  pony = db.StringProperty()
   values = db.StringProperty(multiline=True)
   description = db.StringProperty(multiline=True)
   notes = db.StringProperty(multiline=True)
@@ -159,21 +159,25 @@ class Secret(db.Model):
 class SecretForm(djangoforms.ModelForm):
   class Meta:
     model = Secret
-    exclude = ['hostname', 'username', 'author', 'editor', 'app_reference', 'deleted', 'top_secret', 'old_id']
+    exclude = ['hostname', 'username', 'author', 'editor', 'app_reference', 'top_secret', 'old_id']
     
 class PlistSecret(webapp.RequestHandler):
-  def get(self):
-    secrets = Secret.all().order('-created_at')
-
-    template_values = {
-      'secrets': secrets    
-      }
-    
+  def get(self):    
     self.response.headers['Secrets-Version'] = "1.0.4"
     self.response.headers['Content-Type'] = 'text/xml; charset=utf-8'
     output = memcache.get("plist")
     if output is None:
-      output = template.render('plist.xml', template_values)
+      plist_content = ''
+      secrets = Secret.all().order('-created_at')
+      count = 0;
+      for i in range (0, 3):
+        some_secrets = secrets.fetch(200, 200*i)
+        this_count = len(some_secrets)
+        count += this_count
+        if this_count == 0:
+          break
+        plist_content += template.render('plistentry.xml', {'secrets': some_secrets})
+      output = template.render('plist.xml', {'plist_content':plist_content})
       memcache.add("plist", output)
       self.response.headers['Cached'] = 'yes'
     self.response.out.write(output)
@@ -184,9 +188,22 @@ class MainPage(webapp.RequestHandler):
     
     showall = self.request.get('show') == 'all'
     showrecent = self.request.get('show') == 'recent'
-    cachename = "index-" + self.request.get('show')
     
-    output = memcache.get(cachename)
+    page = self.request.get('page')
+    next_page = None;
+    prev_page = None;
+    cachename = "index-" + self.request.get('show') + "-" + page
+    if page != None and page != '':
+      page = int(page)
+      if page > 0:
+          prev_page = str(page - 1);
+    else:
+      page = 0  
+    next_page = str(page + 1);
+    
+    output = None
+    if not self.request.get('ignorecache'):
+      output = memcache.get(cachename)
     if output is not None:
       self.response.out.write(output)
       self.response.out.write("<!--loaded from cache-->")
@@ -200,12 +217,12 @@ class MainPage(webapp.RequestHandler):
       elif showall == True:
         query = db.GqlQuery("SELECT * FROM Secret WHERE deleted = False "
                               "ORDER BY created_at DESC")
-        secrets = query
+        secrets = query.fetch(100, 100 * page)
       else:
         query.filter('top_secret =', True)
-        secrets = query
+        secrets = query.fetch(100, 100 * page)
       
-      template_values = {'secrets': secrets, 'showall': showall}
+      template_values = {'secrets': secrets, 'showall': showall, 'next_page': next_page, 'prev_page': prev_page}
       
       path = os.path.join(os.path.dirname(__file__), 'index.html')
       output = template.render('index.html', template_values)
@@ -218,6 +235,7 @@ class DeleteSecret(webapp.RequestHandler):
     item = Secret.get(db.Key.from_path('Secret', int(id)))
     item.deleted = True
     item.put()
+    memcache.flush_all()
     self.redirect('/')
     
 class EditSecret(webapp.RequestHandler):
@@ -274,11 +292,9 @@ class EditSecret(webapp.RequestHandler):
       else:
         self.response.out.write(template.render('form.html', {'form':data}))
       
-class PurgeSecrets(webapp.RequestHandler):
+class FlushSecrets(webapp.RequestHandler):
   def get(self):
-    results = Secret.all();
-    for result in results:
-      result.delete() 
+    memcache.flush_all()
      
 
 class RSSNewSecret(webapp.RequestHandler):
@@ -302,7 +318,19 @@ class RSSUpdatedSecret(webapp.RequestHandler):
    
     self.response.headers['Content-Type'] = 'text/rss+xml; charset=utf-8'
     self.response.out.write(output)
-                                                                          
+
+class Backup(webapp.RequestHandler):
+  def get(self):
+    secrets = Secret.all()
+    for i in range (0, 3):
+      some_secrets = secrets.fetch(200, 200*i)
+      this_count = len(some_secrets)
+      if this_count == 0:
+        break
+      for secret in some_secrets:
+        self.response.out.write(secret.to_xml())
+    
+                                                                  
 def main():
   application = webapp.WSGIApplication(
                                        [('/rss/updated', RSSUpdatedSecret),
@@ -310,7 +338,8 @@ def main():
                                         ('/delete',DeleteSecret),
                                         ('/edit', EditSecret),
                                         ('/plist', PlistSecret),
-                                        ('/purge', PurgeSecrets),
+                                        ('/backup', Backup),
+                                        ('/flush', FlushSecrets),
                                         ('/', MainPage)],
                                        debug=True)
   wsgiref.handlers.CGIHandler().run(application)

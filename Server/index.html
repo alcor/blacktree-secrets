@@ -48,6 +48,15 @@
 		<hr width="600">
 		<a href="?show=all">Show full list</a>
 	</center>
+	{% else %}
+	
+	<center>
+		<hr width="600">
+		
+		{% if prev_page %}<a href="?show=all&page={{prev_page}}">Back</a> - {% endif %}
+		{% if next_page %}<a href="?show=all&page={{next_page}}">More</a>{% endif %}
+	</center>	
 	{% endif %}
+
 </body>
 </html>

@@ -235,10 +235,14 @@
   
 }
 
-
 - (NSArray *)secretsArray {
-  
+  NSFileManager *fm = [NSFileManager defaultManager];
   NSString *path = [@"~/Library/Caches/Secrets.plist" stringByStandardizingPath];
+
+  if (![fm fileExistsAtPath:path]) {
+    NSLog(@"No cache, using internal secrets");
+    path = [[NSBundle bundleForClass:[self class]] pathForResource:@"Secrets" ofType:@"plist"];
+  }
   NSData *data = [NSData dataWithContentsOfFile:path];
   
   NSArray *array = [NSPropertyListSerialization 
@@ -386,7 +390,6 @@
                              forKey:@"com.apple.dock"];
   [launchedAppsDictionary setObject:[NSDictionary dictionaryWithObjectsAndKeys:@"com.apple.frontrow", @"NSApplicationBundleIdentifier", nil] 
                              forKey:@"com.apple.frontrowlauncher"];
-  
   
   [self setCategories:[bundles allValues]];
   
@@ -1196,7 +1199,9 @@
   NSString *message = [[response allHeaderFields] valueForKey:@"Secrets-Message"];
   NSString *currentVersion = [[NSBundle bundleForClass:[self class]] objectForInfoDictionaryKey:(NSString *)kCFBundleVersionKey];
   if (!message) message = @"";
+  
   if ([version compare:currentVersion]) {
+    NSLog(@"Version updated %@ -> %@", currentVersion, version);
     NSAlert *updateAlert = [NSAlert alertWithMessageText:@"Update available!"
                                            defaultButton:@"Get it!" 
                                          alternateButton:@"Later" 
@@ -1214,7 +1219,10 @@
 - (void)alertDidEnd:(NSAlert *)alert returnCode:(NSInteger)returnCode contextInfo:(void *)contextInfo {
   if (returnCode) {
     [[NSWorkspace sharedWorkspace] openURL:kSecretsSiteURL];
-    [[alert window] close];
+    NSString *myPath = [[NSBundle bundleForClass:[self class]] bundlePath];
+    NSError *error = nil;
+    [[NSFileManager defaultManager] removeItemAtPath:myPath error:error];
+    if (error) NSLog(@"Remove error %@", error);
     [NSApp terminate:nil];
   }
 }

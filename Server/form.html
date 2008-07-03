@@ -29,7 +29,7 @@ This secret will be editable by anyone for 3 days.<br>
 </span><br>
 </p>
 
-<form id="editform" method="POST" {% if iseditable %} action="/edit" {% endif %} >
+<form id="editform" {% if iseditable %} method="POST" action="/edit" {% else %} action="/submit" {% endif %} >
 <center>
 <table>
 	{{form}}
