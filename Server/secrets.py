@@ -163,7 +163,7 @@ class SecretForm(djangoforms.ModelForm):
     
 class PlistSecret(webapp.RequestHandler):
   def get(self):    
-    self.response.headers['Secrets-Version'] = "1.0.4"
+    self.response.headers['Secrets-Version'] = "1.0.5"
     self.response.headers['Content-Type'] = 'text/xml; charset=utf-8'
     output = memcache.get("plist")
     if output is None:
@@ -254,9 +254,15 @@ class EditSecret(webapp.RequestHandler):
       'loggedin':loggedin,
       'url': url
     }
+    
+    item = None
     if id:
       item = Secret.get(db.Key.from_path('Secret', int(id)))
-      isowned = (item.author != None) & (item.author == users.get_current_user());
+      if item == None:
+        
+        self.response.out.write("Unknown secret. <a href=\"/\">Show all.</a>")
+        return;
+      isowned = (item.author != None) and (item.author == users.get_current_user());
       template_values['isowned'] = isowned
       template_values['iseditable'] = isadmin | isowned | (item.is_editable() & loggedin)
       template_values['form'] = SecretForm(instance=item)
