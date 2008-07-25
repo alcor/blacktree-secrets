@@ -10,7 +10,7 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-# Used 9571 times in query history.
+# Unused in query history -- copied from input.
 - kind: Secret
   properties:
   - name: created_at
@@ -24,7 +24,7 @@ indexes:
   - name: updated_at
     direction: desc
 
-# Used 9 times in query history.
+# Unused in query history -- copied from input.
 - kind: Secret
   properties:
   - name: deleted
