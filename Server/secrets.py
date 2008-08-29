@@ -8,6 +8,7 @@ from google.appengine.ext import db
 from google.appengine.ext.webapp import template
 from google.appengine.api import memcache
 from google.appengine.ext.db import djangoforms
+from google.appengine.ext import search
 
 import xml.etree.cElementTree as ET
 
@@ -37,7 +38,7 @@ DATA_TYPES = (
 ("URL", "url")
 )
   
-class Secret(db.Model):
+class Secret(search.SearchableModel):
   author = db.UserProperty()
   editor = db.UserProperty()
   old_id = db.IntegerProperty()
@@ -188,11 +189,23 @@ class MainPage(webapp.RequestHandler):
     
     showall = self.request.get('show') == 'all'
     showrecent = self.request.get('show') == 'recent'
-    
+    search_string = self.request.get('search')
+
+    warning = None
+    message = None
+    title = None
+
     page = self.request.get('page')
     next_page = None;
     prev_page = None;
     cachename = "index-" + self.request.get('show') + "-" + page
+    
+    if search_string:
+      cachename = None
+      if (len(search_string) <= 3):
+        search_string = None
+        warning = "searches must be longer than 3 characters"
+        
     if page != None and page != '':
       page = int(page)
       if page > 0:
@@ -202,7 +215,7 @@ class MainPage(webapp.RequestHandler):
     next_page = str(page + 1);
     
     output = None
-    if not self.request.get('ignorecache'):
+    if not self.request.get('ignorecache') and cachename:
       output = memcache.get(cachename)
     if output is not None:
       self.response.out.write(output)
@@ -211,32 +224,56 @@ class MainPage(webapp.RequestHandler):
     else:
       query.filter('deleted ==', False)
       if showrecent == True:
+        title = "Recent Secrets"
         query = db.GqlQuery("SELECT * FROM Secret WHERE deleted = False "
                             "ORDER BY created_at DESC")
         secrets = query.fetch(10)
       elif showall == True:
+        title = "All Secrets: page %d" % (page + 1)
         query = db.GqlQuery("SELECT * FROM Secret WHERE deleted = False "
                               "ORDER BY created_at DESC")
         secrets = query.fetch(100, 100 * page)
+      elif search_string is not None and len(search_string) > 3:
+        title = "\"%s\"" % (search_string)
+        query = Secret.all().search(search_string)
+        # query = db.GqlQuery("SELECT * FROM Secret WHERE deleted = False"
+        #                     "AND bundle = :1"
+        #                     "ORDER BY created_at DESC",
+        #                     )
+        secrets = query.fetch(100)
+        count = len(secrets)
+        if (count):
+          message = '%(number)d secret(s) found for %(search_string)s' % {'search_string': search_string, "number": count }
+        else:
+          message = "no matches"
       else:
         query.filter('top_secret =', True)
         secrets = query.fetch(100, 100 * page)
       
-      template_values = {'secrets': secrets, 'showall': showall, 'next_page': next_page, 'prev_page': prev_page}
+      template_values = {'secrets': secrets, 
+                         'warning': warning,
+                         'search_string' : search_string,
+                         'message': message,
+                         'title': title,
+                         'showall': showall, 
+                         'next_page': next_page, 
+                         'prev_page': prev_page}
       
       path = os.path.join(os.path.dirname(__file__), 'index.html')
       output = template.render('index.html', template_values)
-      memcache.add(cachename, output) 
+      if cachename is not None:
+        memcache.add(cachename, output) 
       self.response.out.write(output)
     
 class DeleteSecret(webapp.RequestHandler):
   def post(self):
-    id = self.request.get('_id') 
-    item = Secret.get(db.Key.from_path('Secret', int(id)))
-    item.deleted = True
-    item.put()
-    memcache.flush_all()
-    self.redirect('/')
+    if (users.is_current_user_admin()):
+      id = self.request.get('_id') 
+      item = Secret.get(db.Key.from_path('Secret', int(id)))
+      item.deleted = True
+      item.put()
+      memcache.flush_all()
+      self.redirect('/')
     
 class EditSecret(webapp.RequestHandler):
   def get(self):
@@ -300,7 +337,18 @@ class EditSecret(webapp.RequestHandler):
       
 class FlushSecrets(webapp.RequestHandler):
   def get(self):
-    memcache.flush_all()
+    if (users.is_current_user_admin()):
+      secrets = Secret.all().filter("deleted = ", True).fetch(1000)
+      self.response.out.write("Flushed %(page)d" % {'page': len(secrets)})
+      memcache.flush_all()
+      
+class DeleteSecrets(webapp.RequestHandler):
+  def get(self):
+    if (users.is_current_user_admin()):
+      secrets = Secret.all().filter("deleted = ", True).fetch(1000)
+      self.response.out.write("Deleted %(page)d" % {'page': len(secrets)})
+      db.delete(secrets)
+      memcache.flush_all()
      
 
 class RSSNewSecret(webapp.RequestHandler):
@@ -328,15 +376,41 @@ class RSSUpdatedSecret(webapp.RequestHandler):
 class Backup(webapp.RequestHandler):
   def get(self):
     secrets = Secret.all()
-    for i in range (0, 3):
-      some_secrets = secrets.fetch(200, 200*i)
-      this_count = len(some_secrets)
-      if this_count == 0:
-        break
-      for secret in some_secrets:
-        self.response.out.write(secret.to_xml())
-    
-                                                                  
+    page = self.request.get('page')
+    if page is not None and len(page):
+      page = int(page)
+    else:
+      page = 0
+    some_secrets = secrets.fetch(30, 30*page)
+    this_count = len(some_secrets)
+    for secret in some_secrets:
+      secret.put()
+    if (this_count > 0):
+      url = "<meta http-equiv=\"refresh\" content=\"1;url=/backup?page=%(page)d\"/>" % {'page': int(page)+1}
+      self.response.out.write(url)
+      self.response.out.write("Next...")
+    else:
+      self.response.out.write("Done")
+
+class Backup(webapp.RequestHandler):
+  def get(self):
+    secrets = Secret.all()
+    page = self.request.get('page')
+    if page is not None and len(page):
+      page = int(page)
+    else:
+      page = 0
+    some_secrets = secrets.fetch(30, 30*page)
+    this_count = len(some_secrets)
+    for secret in some_secrets:
+      secret.put()
+    if (this_count > 0):
+      url = "<meta http-equiv=\"refresh\" content=\"1;url=/backup?page=%(page)d\"/>" % {'page': int(page)+1}
+      self.response.out.write(url)
+      self.response.out.write("Next...")
+    else:
+      self.response.out.write("Done")
+                                         
 def main():
   application = webapp.WSGIApplication(
                                        [('/rss/updated', RSSUpdatedSecret),
@@ -344,7 +418,7 @@ def main():
                                         ('/delete',DeleteSecret),
                                         ('/edit', EditSecret),
                                         ('/plist', PlistSecret),
-                                        ('/backup', Backup),
+                                        # ('/backup', Backup),
                                         ('/flush', FlushSecrets),
                                         ('/', MainPage)],
                                        debug=True)

@@ -7,9 +7,11 @@
 	<script type="text/javascript" src="/javascript/jquery.js"></script>
 	<link rel="alternate" type="application/rss+xml" title="New Secrets" href="rss/new">
 	<link rel="alternate" type="application/rss+xml" title="All Updates" href="rss/updated">
-	<title>Secrets - Blacktree</title>
+	<title>Secrets{% if title %}: {{title}}{% endif %}</title>
 </head>
 <body>
+	
+		<form action="">
 	<p align="center"><a href="http://secrets.blacktree.com"><img border="0" src="/images/Secrets.png"></a><br>
 		A database of hidden settings for Mac OS X<br><br>
 		<a href="edit">Add a secret</a> - 
@@ -18,15 +20,25 @@
 		<a href="http://groups.google.com/group/blacktree-secrets">Discussion Group</a> - 
 		<a href="http://code.google.com/p/blacktree-secrets/issues/list">Issue Tracker</a> - 
 		<a href="http://blacktree-secrets.googlecode.com/files/Secrets_1.0.5.zip">PrefPane 1.0.5</a> (10.5 only)
-		<br>
-		<font color="red"> Secrets is in Beta and many of these options can <b>harm your system</b> if used improperly.</font><br> 
+		<br><br>
+		<input type="search" name="search" value="{% if search_string %}{{search_string}}{% endif %}" placeholder="Search" style="width:300;">
+		
+		
+		{% if warning %}
+			<div align="center" id="errorExplanation">{{ warning }}</div>
+		{% endif %}
+		
 	</p>
+</form>
 
 	<hr width="600">
-	<div style="width:600px; margin:auto; padding:10px; background-color:pink;">We're migrating Secrets to Google App Engine. Let us know if you have any issues in the group.</div>
 
+	{% if message %}
+		<div align="center" id="message">{{ message }}</div>
+	{% endif %}
+	
 	<table width="600" cellpadding="5" align="center" border="0">{% for secret in secrets %}
-		<tr {% if secret.hidden or secret.is_broken %} style="opacity: 0.3;"{% endif %}>
+		<tr {% if secret.hidden or secret.is_broken or secret.deleted %} style="opacity: 0.3;"{% endif %}>
 			<td align="right" valign="top">
 				{{ secret.display_app|escape }}
 				{% if secret.minversion %}<!-- {#and preference.minversion.length#} -->({{ secret.minversion }}){% endif %}
