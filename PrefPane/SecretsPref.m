@@ -494,7 +494,7 @@
 
 
 
-- (float) tableView:(NSTableView *)tableView heightOfRow:(int)row {
+- (CGFloat) tableView:(NSTableView *)tableView heightOfRow:(NSInteger)row {
   if (tableView == categoriesTable) return [tableView rowHeight];
 
 	
@@ -514,7 +514,7 @@
 
 
 
-- (NSString *)tableView:(NSTableView *)aTableView toolTipForCell:(NSCell *)aCell rect:(NSRectPointer)rect tableColumn:(NSTableColumn *)aTableColumn row:(int)row mouseLocation:(NSPoint)mouseLocation { 
+- (NSString *)tableView:(NSTableView *)aTableView toolTipForCell:(NSCell *)aCell rect:(NSRectPointer)rect tableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)row mouseLocation:(NSPoint)mouseLocation { 
   if (aTableView = categoriesTable) return nil;
 	id thisInfo = [[entriesController arrangedObjects] objectAtIndex:row];
   
@@ -948,7 +948,7 @@
 
 #pragma mark -
 
-- (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(int)rowIndex {
+- (id)tableView:(NSTableView *)aTableView objectValueForTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex {
   if ([[aTableColumn identifier] isEqualToString:@"icon"]) {
     id thisInfo = [[entriesController arrangedObjects] objectAtIndex:rowIndex]; 	
     NSString *ident = [thisInfo objectForKey:@"display_bundle"];
@@ -998,7 +998,7 @@
 	return nil;
 }
 
-- (void)tableView:(NSTableView *)aTableView setObjectValue:(id)value forTableColumn:(NSTableColumn *)aTableColumn row:(int)rowIndex {
+- (void)tableView:(NSTableView *)aTableView setObjectValue:(id)value forTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex {
 	if ([[aTableColumn identifier] isEqualToString:@"value"]) {
 		id thisInfo = [[entriesController arrangedObjects] objectAtIndex:rowIndex]; 	
     
@@ -1221,7 +1221,7 @@
     [[NSWorkspace sharedWorkspace] openURL:kSecretsSiteURL];
     NSString *myPath = [[NSBundle bundleForClass:[self class]] bundlePath];
     NSError *error = nil;
-    [[NSFileManager defaultManager] removeItemAtPath:myPath error:error];
+    [[NSFileManager defaultManager] removeItemAtPath:myPath error:&error];
     if (error) NSLog(@"Remove error %@", error);
     [NSApp terminate:nil];
   }
