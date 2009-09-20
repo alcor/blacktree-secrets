@@ -41,24 +41,24 @@
   
   
   if ([[column identifier] isEqualToString:@"value"]) {
-  id thisInfo = [[entriesController arrangedObjects] objectAtIndex: row]; 
-  
-	NSString *type = [thisInfo objectForKey:@"datatype"];
-  if ([type isEqualToString:@"path"]) {
-    NSOpenPanel *panel = [NSOpenPanel openPanel];
-    NSString *directory = [self tableView:entriesTable objectValueForTableColumn:column row:row];
-    [panel setDirectory:directory];
-    [panel setCanChooseDirectories:YES];
-    [panel setResolvesAliases:YES];
-    NSInteger integer = [panel runModalForDirectory:[directory stringByDeletingLastPathComponent] file:[directory lastPathComponent]];
-    if (integer) {
-    NSString *path = [[panel filenames] lastObject];
-    [self tableView:entriesTable setObjectValue:path forTableColumn:column row:row];
-  }
-    return;
-  }
-  
-  
+    id thisInfo = [[entriesController arrangedObjects] objectAtIndex: row]; 
+    
+    NSString *type = [thisInfo objectForKey:@"datatype"];
+    if ([type isEqualToString:@"path"]) {
+      NSOpenPanel *panel = [NSOpenPanel openPanel];
+      NSString *directory = [self tableView:entriesTable objectValueForTableColumn:column row:row];
+      [panel setDirectory:directory];
+      [panel setCanChooseDirectories:YES];
+      [panel setResolvesAliases:YES];
+      NSInteger integer = [panel runModalForDirectory:[directory stringByDeletingLastPathComponent] file:[directory lastPathComponent]];
+      if (integer) {
+        NSString *path = [[panel filenames] lastObject];
+        [self tableView:entriesTable setObjectValue:path forTableColumn:column row:row];
+      }
+      return;
+    }
+    
+    
     if ([[sender preparedCellAtColumn:[sender clickedColumn] row:row] isKindOfClass:[NSTextFieldCell class]]) {
       [sender editColumn:[sender clickedColumn] row:[sender clickedRow] withEvent:[NSApp currentEvent] select:YES];
     }
@@ -101,10 +101,10 @@
   NSDictionary *app = [thisInfo objectForKey:@"container"];
   
   [self quitApplicationWithBundleID:[app valueForKey:@"NSApplicationBundleIdentifier"]];
-
+  
   // make it undirty, even if it still is
   [app setValue:nil forKey:@"dirty"];
-
+  
 }
 
 - (void) willSelect {
@@ -142,23 +142,18 @@
   float interval = [[NSUserDefaults standardUserDefaults] floatForKey:@"SecretsDownloadInterval"];
   if (interval < 60) interval = 7 * 24 * 60 * 60;
   if (interval < 7 * 24 * 60 * 60) interval = 60 * 60; // Don't allow auto-checking more than once an hour
- 
+  
   if (![self secretsArray]
       || !lastDownloadDate 
       || -[lastDownloadDate timeIntervalSinceNow] > interval) {
     [self reloadInfo:nil];
   }
+  [[[self mainView] window] performSelector:@selector(makeFirstResponder:) withObject:searchField afterDelay:0.0];
 }
 
 - (void)willUnselect {
   [[[self mainView] window] setContentBorderThickness:0 forEdge:NSMinYEdge];
 }
-
-
-- (void)mainViewDidLoad
-{
-}
-
 
 - (void)appLaunched:(NSNotification *)notif {
   NSString *bundle = [[notif userInfo] objectForKey:@"NSApplicationBundleIdentifier"];
@@ -183,19 +178,19 @@
                                                          selector:@selector(appLaunched:)
                                                              name:NSWorkspaceDidLaunchApplicationNotification
                                                            object:nil];
-
+  
   [[[NSWorkspace sharedWorkspace] notificationCenter] addObserver:self
                                                          selector:@selector(appTerminated:)
                                                              name:NSWorkspaceDidTerminateApplicationNotification
                                                            object:nil];
-
+  
   //	[categoriesController addObserver:self
-//                         forKeyPath:@"selectedObjects"
-//                            options:0
-//                            context:nil];
+  //                         forKeyPath:@"selectedObjects"
+  //                            options:0
+  //                            context:nil];
   
   [entriesController setSortDescriptors:[NSArray arrayWithObjects:
-                     
+                                         
                                          [NSSortDescriptor descriptorWithKey:@"display_bundle"
                                                                    ascending:YES],
                                          
@@ -221,24 +216,22 @@
   [entriesTable setTarget:self];
   [entriesTable setIntercellSpacing:NSMakeSize(6, 8)];
   [categoriesTable setIntercellSpacing:NSMakeSize(0, 1)];
-	NSTableColumn *iconColumn = [entriesTable tableColumnWithIdentifier:@"icon"];
+  NSTableColumn *iconColumn = [entriesTable tableColumnWithIdentifier:@"icon"];
   [[iconColumn dataCell] setImageAlignment:NSImageAlignTopRight];
-	
   
-
-	[[NSNotificationCenter defaultCenter]
+  
+  
+  [[NSNotificationCenter defaultCenter]
    addObserver:self
    selector:@selector(columnResized)
    name:NSTableViewColumnDidResizeNotification
    object:entriesTable];
-  
-  
 }
 
 - (NSArray *)secretsArray {
   NSFileManager *fm = [NSFileManager defaultManager];
   NSString *path = [@"~/Library/Caches/Secrets.plist" stringByStandardizingPath];
-
+  
   if (![fm fileExistsAtPath:path]) {
     NSLog(@"No cache, using internal secrets");
     path = [[NSBundle bundleForClass:[self class]] pathForResource:@"Secrets" ofType:@"plist"];
@@ -265,10 +258,10 @@
   
   
   NSString *surl = [self getUserDefaultsValueForKey:@"secretsURL"
-                            bundle:@"com.blacktree.secrets"
-                              user:kCFPreferencesCurrentUser 
-                              host:kCFPreferencesAnyHost 
-                                      asKeyPath:NO];
+                                             bundle:@"com.blacktree.secrets"
+                                               user:kCFPreferencesCurrentUser 
+                                               host:kCFPreferencesAnyHost 
+                                          asKeyPath:NO];
   
   NSURL *url = nil;
   if ([surl isEqualToString:@"SAFE_SERVER"]) {
@@ -338,14 +331,14 @@
                                      @"Top Secrets", @"text",
                                      [NSNumber numberWithInt:3], @"rank", 
                                      image , @"image", 
-                                     [NSNumber numberWithBool:YES] , @"bold",
-                                     
-                                     [NSNumber numberWithBool:YES] , @"hideGroups",
+                                     [NSNumber numberWithBool:YES], @"globalSearch",
+                                     [NSNumber numberWithBool:YES], @"bold",
+                                     [NSNumber numberWithBool:YES], @"hideGroups",
                                      [NSPredicate predicateWithFormat:@"top_secret == TRUE"],  @"predicate", 
                                      nil];
   
   [bundles setValue:topSecrets forKey:@"TOP_SECRETS"];
-
+  
   
   NSMutableDictionary *all = [NSMutableDictionary dictionaryWithObjectsAndKeys:
                               @"All Secrets", @"text",
@@ -355,7 +348,7 @@
                               nil];
   
   [bundles setValue:all forKey:@"ALL"];
-    
+  
   
   NSMutableDictionary *global = [NSMutableDictionary dictionaryWithObjectsAndKeys:
                                  @"System", @"text",
@@ -371,10 +364,11 @@
   NSMutableDictionary *recent = [NSMutableDictionary dictionaryWithObjectsAndKeys:
                                  @"New Secrets", @"text",
                                  [NSImage imageNamed:@"NSNetwork"] , @"image",
+                                 [NSNumber numberWithBool:YES] , @"globalSearch",
                                  [NSNumber numberWithInt:1], @"rank", 
                                  [NSNumber numberWithBool:YES] , @"hideGroups",
                                  [NSPredicate predicateWithFormat:@"created > %@", previousLaunchDate],  @"predicate",
-
+                                 
                                  nil];
   [bundles setValue:recent forKey:@"Recent"];
   
@@ -382,10 +376,10 @@
   
   NSArray *launchedApps = [[NSWorkspace sharedWorkspace] launchedApplications];
   NSMutableDictionary *launchedAppsDictionary = [NSMutableDictionary dictionaryWithObjects:launchedApps
-                                                                     forKeys:[launchedApps valueForKey:@"NSApplicationBundleIdentifier"]];
-
-
-	// Add dock and frontrow
+                                                                                   forKeys:[launchedApps valueForKey:@"NSApplicationBundleIdentifier"]];
+  
+  
+  // Add dock and frontrow
   [launchedAppsDictionary setObject:[NSDictionary dictionaryWithObjectsAndKeys:@"com.apple.dock", @"NSApplicationBundleIdentifier", nil] 
                              forKey:@"com.apple.dock"];
   [launchedAppsDictionary setObject:[NSDictionary dictionaryWithObjectsAndKeys:@"com.apple.frontrow", @"NSApplicationBundleIdentifier", nil] 
@@ -395,7 +389,7 @@
   
   NSWorkspace *workspace = [NSWorkspace sharedWorkspace];
   
-	for (NSDictionary *entry in  array) {
+  for (NSDictionary *entry in  array) {
     
     
     if ([[entry objectForKey:@"hidden"] boolValue]) continue;
@@ -425,7 +419,7 @@
       NSString *name = nil;  
       NSImage *image = nil;
       NSString *path = [workspace absolutePathForAppBundleWithIdentifier:ident];
-
+      
       
       NSDictionary *appDictionary = [launchedAppsDictionary objectForKey:ident];
       if (appDictionary) {
@@ -452,14 +446,14 @@
       if (!image) image = [NSImage imageNamed:@"NSApplicationIcon"];
       
       
-      NSString *file = [[NSString stringWithFormat:@"~/Desktop/Icons/%@.png", ident] stringByStandardizingPath];
-      [[(NSBitmapImageRep *)[image representationOfSize:NSMakeSize(32, 32)] representationUsingType:NSPNGFileType properties:nil] writeToFile:file atomically:YES];
+//      NSString *file = [[NSString stringWithFormat:@"~/Desktop/Icons/%@.png", ident] stringByStandardizingPath];
+//      [[(NSBitmapImageRep *)[image representationOfSize:NSMakeSize(32, 32)] representationUsingType:NSPNGFileType properties:nil] writeToFile:file atomically:YES];
       
       [bundle setObject:ident forKey:@"bundle"];
       [bundle setObject:image forKey:@"image"];
       [bundle setObject:name forKey:@"text"];
       
-//      [bundle setObject:[NSMutableArray array] forKey:@"contents"];
+      //      [bundle setObject:[NSMutableArray array] forKey:@"contents"];
       [bundles setValue:bundle forKey:ident];  
     }
     
@@ -480,32 +474,30 @@
     //[[bundle objectForKey:@"contents"] addObject:entry];
   }
   
-	[self setCategories:[bundles allValues]];
+  [self setCategories:[bundles allValues]];
   if ([[entriesController arrangedObjects] count] > 0)
-  [entriesTable noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [[entriesController arrangedObjects] count]-1 )]];
-
+    [entriesTable noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [[entriesController arrangedObjects] count]-1 )]];
+  
 }
 
 - (void)columnResized {
   
   if ([[entriesController arrangedObjects] count] > 0)
-  [entriesTable noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [[entriesController arrangedObjects] count]-1 )]];
+    [entriesTable noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [[entriesController arrangedObjects] count]-1 )]];
 }
-
-
 
 - (CGFloat) tableView:(NSTableView *)tableView heightOfRow:(NSInteger)row {
   if (tableView == categoriesTable) return [tableView rowHeight];
-
-	
+  
+  
   NSTableColumn *column = [tableView tableColumnWithIdentifier:@"title"];
   NSCell *cell = [tableView preparedCellAtColumn:[tableView columnWithIdentifier:@"title"] row:row];
   //  NSLog(@"cell %@", cell);
   //	NSString *title = [thisInfo objectForKey:@"title"];
   //  if (!title) title = @"";
   //	[cell setStringValue:title];
-	NSSize size = [cell cellSizeForBounds:NSMakeRect(0, 0, [column width] , MAXFLOAT)]; 		
-	return MAX([tableView rowHeight], size.height);
+  NSSize size = [cell cellSizeForBounds:NSMakeRect(0, 0, [column width] , MAXFLOAT)]; 		
+  return MAX([tableView rowHeight], size.height);
 }
 
 - (BOOL)tableView:(NSTableView *)tableView shouldShowCellExpansionForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
@@ -516,7 +508,7 @@
 
 - (NSString *)tableView:(NSTableView *)aTableView toolTipForCell:(NSCell *)aCell rect:(NSRectPointer)rect tableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)row mouseLocation:(NSPoint)mouseLocation { 
   if (aTableView = categoriesTable) return nil;
-	id thisInfo = [[entriesController arrangedObjects] objectAtIndex:row];
+  id thisInfo = [[entriesController arrangedObjects] objectAtIndex:row];
   
   NSString *tip = [thisInfo objectForKey:@"description"];
   if (![tip length]) return [thisInfo objectForKey:@"title"];
@@ -604,7 +596,7 @@
   }
 }
 
-   
+
 - (NSCell *)tableView:(NSTableView *)tableView dataCellForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
   
   if ([[tableColumn identifier] isEqualToString:@"title"]) {
@@ -626,30 +618,30 @@
   if (![[tableColumn identifier] isEqualToString:@"value"])
     return [tableColumn dataCellForRow:row];
   if (!tableColumn) return nil;
-	id thisInfo = [[entriesController arrangedObjects] objectAtIndex:row];
-	NSString *type = [thisInfo objectForKey:@"datatype"];
+  id thisInfo = [[entriesController arrangedObjects] objectAtIndex:row];
+  NSString *type = [thisInfo objectForKey:@"datatype"];
   NSString *widget = [thisInfo objectForKey:@"widget"];
   
-	NSCell *cell = nil;
-	if ([type isEqualToString:@"boolean"]
+  NSCell *cell = nil;
+  if ([type isEqualToString:@"boolean"]
       || [type isEqualToString:@"boolean-neg"]  
       || [type isEqualToString:@"array-add"]
       || [type isEqualToString:@"dict-add"]) {
-		cell = [[[NSButtonCell alloc] init] autorelease];
+    cell = [[[NSButtonCell alloc] init] autorelease];
     [cell setAllowsMixedState:YES];
-		[(NSButtonCell *)cell setButtonType:NSSwitchButton];
-		[cell setTitle:@""];
-	}
+    [(NSButtonCell *)cell setButtonType:NSSwitchButton];
+    [cell setTitle:@""];
+  }
   
-	if ([type isEqualToString:@"array-add-multiple"]) {
-		cell = [[[NSButtonCell alloc] init] autorelease];
-		[(NSButtonCell *)cell setButtonType:NSOnOffButton];
+  if ([type isEqualToString:@"array-add-multiple"]) {
+    cell = [[[NSButtonCell alloc] init] autorelease];
+    [(NSButtonCell *)cell setButtonType:NSOnOffButton];
     [(NSButtonCell *)cell setBezelStyle:NSTexturedRoundedBezelStyle];
     [cell setAlignment:NSLeftTextAlignment];
     id value = [self getUserDefaultsValueForInfo:thisInfo];
-		[cell setTitle:value ? @"Add another (delete will remove all)" : @"Add"];
-	}
-
+    [cell setTitle:value ? @"Add another (delete will remove all)" : @"Add"];
+  }
+  
   
   
   if ([type isEqualToString:@"path"]) {
@@ -659,21 +651,21 @@
     [(NSPathCell *)cell setBackgroundColor:[NSColor clearColor]];//:NSPathStyleNavigationBar];
   }
   
-	if ([widget hasPrefix:@"popup"]) {
-		cell = [[[NSPopUpButtonCell alloc] init] autorelease];
-		
-		[(NSPopUpButtonCell *)cell setBordered:YES];
-		
-		[(NSPopUpButtonCell *)cell removeAllItems];
+  if ([widget hasPrefix:@"popup"]) {
+    cell = [[[NSPopUpButtonCell alloc] init] autorelease];
+    
+    [(NSPopUpButtonCell *)cell setBordered:YES];
+    
+    [(NSPopUpButtonCell *)cell removeAllItems];
     NSMenu *menu = [self menuForValues:[thisInfo objectForKey:@"values"]];
     [cell setMenu:menu];
-	}
+  }
   
   if ([widget hasPrefix:@"combo"]) {
-		cell = [[[NSComboBoxCell alloc] init] autorelease];
+    cell = [[[NSComboBoxCell alloc] init] autorelease];
     if ([[thisInfo objectForKey:@"values"] isKindOfClass:[NSArray class]])
       [(NSComboBoxCell *)cell addItemsWithObjectValues:[thisInfo objectForKey:@"values"]];
-	}
+  }
   
   if (!cell) {
     cell = [[[NSTextFieldCell alloc] init] autorelease];    
@@ -684,7 +676,7 @@
       placeholder = type;
       if (units) placeholder = [NSString stringWithFormat:@"%@ (%@)", placeholder, units];
     }
-		[(NSTextFieldCell *)cell setPlaceholderString:placeholder];
+    [(NSTextFieldCell *)cell setPlaceholderString:placeholder];
     
     
     
@@ -701,10 +693,10 @@
     }
     
   }
-	[cell setControlSize:NSSmallControlSize];
-	[cell setFont:[NSFont systemFontOfSize:11]];
-	[cell setEditable:YES];
-	return cell;
+  [cell setControlSize:NSSmallControlSize];
+  [cell setFont:[NSFont systemFontOfSize:11]];
+  [cell setEditable:YES];
+  return cell;
 }
 
 //- (BOOL)tableView:(NSTableView *)aTableView shouldSelectRow:(int)rowIndex {
@@ -755,7 +747,7 @@
   
   if ([bundle rangeOfString:@"$HOME"].location != NSNotFound)
     bundle = [bundle stringByReplacingOccurrencesOfString:@"$HOME" withString:NSHomeDirectory()];
-
+  
   NSString *keypath = nil;
   NSString *key = path;
   
@@ -766,9 +758,9 @@
       keypath = [[components subarrayWithRange:NSMakeRange(1, [components count] - 1)] componentsJoinedByString:@"."];
     }
   }
-
+  
   NSLog(@"defaults write %@ %@ \"%@\" \"%@\" %@ %@", user, host, bundle, key, keypath ? keypath : @"", value );
- 
+  
   if (keypath) { // Handle dictionary subpath
     NSDictionary *dictValue = (NSDictionary *)CFPreferencesCopyValue((CFStringRef)key, (CFStringRef)bundle, user, host);
     [dictValue autorelease];
@@ -782,7 +774,7 @@
   
   CFPreferencesSetValue((CFStringRef) key, value, (CFStringRef)bundle, user, host);
   CFPreferencesSynchronize((CFStringRef) bundle, user, host);  
-
+  
   if (value)
     [[NSDistributedNotificationCenter defaultCenter] postNotificationName:@"com.blacktree.Secret" object:(NSString *)bundle userInfo:[NSDictionary dictionaryWithObject:value forKey:path]];
   
@@ -803,7 +795,7 @@
   if ([[thisInfo objectForKey:@"set_for_all_users"] boolValue]) {
     user = kCFPreferencesAnyUser;
     host = kCFPreferencesCurrentHost;
-}
+  }
   if ([[thisInfo objectForKey:@"current_host_only"] boolValue]) host = kCFPreferencesCurrentHost;
   BOOL isKeypath = [[thisInfo objectForKey:@"is_keypath"] boolValue];
   
@@ -825,7 +817,7 @@
       value = nil;
     }
   }
-
+  
   if ([datatype isEqualToString:@"dict-add"]) {
     NSDictionary *toggleValue = [thisInfo objectForKey:@"values"];
     
@@ -854,7 +846,7 @@
   
   NSString *keypath = [thisInfo objectForKey:@"keypath"];
   NSString *bundle = [thisInfo objectForKey:@"bundle"];
-    BOOL isKeypath = [[thisInfo objectForKey:@"is_keypath"] boolValue];
+  BOOL isKeypath = [[thisInfo objectForKey:@"is_keypath"] boolValue];
   
   
   
@@ -867,9 +859,9 @@
   
   // Inject into an array if for add
   if ([[thisInfo objectForKey:@"datatype"] isEqualToString:@"array-add"]
-    || [[thisInfo objectForKey:@"datatype"] isEqualToString:@"array-add-multiple"]) {
+      || [[thisInfo objectForKey:@"datatype"] isEqualToString:@"array-add-multiple"]) {
     id toggleValue = [thisInfo objectForKey:@"values"];
-
+    
     NSMutableArray  *array = [[oldValue mutableCopy] autorelease];
     
     if ([value boolValue]) {
@@ -883,10 +875,10 @@
     
   }
   
-    // Inject into a dictionary if for add
+  // Inject into a dictionary if for add
   if ([[thisInfo objectForKey:@"datatype"] isEqualToString:@"dict-add"]) {
     NSDictionary *toggleValue = [thisInfo objectForKey:@"values"];
-
+    
     NSMutableDictionary  *dict = [[oldValue mutableCopy] autorelease];
     if ([value boolValue]) {
       if (!dict) dict = [NSMutableDictionary dictionary];
@@ -919,8 +911,8 @@
   }
   
   
-
-    
+  
+  
 }
 
 
@@ -954,16 +946,16 @@
     NSString *ident = [thisInfo objectForKey:@"display_bundle"];
     if (!ident) ident = [thisInfo objectForKey:@"bundle"];
     
-//    if ([ident isEqualToString:@".GlobalPreferences"]) {
-//      id category = [[categoriesController selectedObjects] lastObject];
-//      ident = [category valueForKey:@"bundle"];
-//      NSLog(@"ident %@", category);
-//    }
+    //    if ([ident isEqualToString:@".GlobalPreferences"]) {
+    //      id category = [[categoriesController selectedObjects] lastObject];
+    //      ident = [category valueForKey:@"bundle"];
+    //      NSLog(@"ident %@", category);
+    //    }
     return [[bundles objectForKey:ident] objectForKey:@"image"];
   }
   
   if ([[aTableColumn identifier] isEqualToString:@"value"]) {
-		id thisInfo = [[entriesController arrangedObjects] objectAtIndex:rowIndex]; 	
+    id thisInfo = [[entriesController arrangedObjects] objectAtIndex:rowIndex]; 	
     
     id value = [self getUserDefaultsValueForInfo:thisInfo];
     
@@ -977,12 +969,12 @@
     
     if ([datatype isEqualToString:@"boolean-neg"])
       value = [NSNumber numberWithBool:![(NSNumber *)value boolValue]];
- 
-//    if ([datatype isEqualToString:@"array-add"]) {
-//      id toggleValue = [thisInfo objectForKey:@"values"];
-//      NSLog(@" %@ contains %@" , value, toggleValue);
-//      value = [NSNumber numberWithBool:[value containsObject:toggleValue]];
-//    }
+    
+    //    if ([datatype isEqualToString:@"array-add"]) {
+    //      id toggleValue = [thisInfo objectForKey:@"values"];
+    //      NSLog(@" %@ contains %@" , value, toggleValue);
+    //      value = [NSNumber numberWithBool:[value containsObject:toggleValue]];
+    //    }
     
     
     
@@ -993,15 +985,14 @@
       value = [NSNumber numberWithInt:index];
     }
     
-		return value;
-	}
-	return nil;
+    return value;
+  }
+  return nil;
 }
 
 - (void)tableView:(NSTableView *)aTableView setObjectValue:(id)value forTableColumn:(NSTableColumn *)aTableColumn row:(NSInteger)rowIndex {
-	if ([[aTableColumn identifier] isEqualToString:@"value"]) {
-		id thisInfo = [[entriesController arrangedObjects] objectAtIndex:rowIndex]; 	
-    
+  if ([[aTableColumn identifier] isEqualToString:@"value"]) {
+    id thisInfo = [[entriesController arrangedObjects] objectAtIndex:rowIndex]; 	    
     if ([value isKindOfClass:[NSString class]] && ![value length]) value = nil;
     if ([[thisInfo objectForKey:@"widget"] isEqualToString:@"popup"]) {
       NSMenu *menu = [self menuForValues:[thisInfo objectForKey:@"values"]];
@@ -1010,7 +1001,6 @@
     
     NSString *datatype = [thisInfo objectForKey:@"datatype"];
     
-   
     if ([datatype isEqualToString:@"float"]) {
       value = [NSNumber numberWithFloat:[value floatValue]];
     }
@@ -1022,15 +1012,13 @@
     if ([datatype isEqualToString:@"boolean-neg"])
       value = [NSNumber numberWithBool:![value boolValue]];
     
-
-    
     if ([value isKindOfClass:[NSString class]] && ![(NSString *)value length]) {
       value = nil;
     }
     
-      [self setUserDefaultsValue:value forInfo:thisInfo];
-      [aTableView display];
-
+    [self setUserDefaultsValue:value forInfo:thisInfo];
+    [aTableView display];
+    
   }
 }
 
@@ -1044,28 +1032,31 @@
 
 - (void)updateEntries {
   id category = [[categoriesController selectedObjects] lastObject];
-
+  
   NSPredicate *predicate = [NSPredicate predicateWithFormat:@"hidden != 1"];
   if (searchPredicate) predicate = [NSCompoundPredicate andPredicateWithSubpredicates:[NSArray arrayWithObjects:predicate, searchPredicate, nil]];
   
   NSString *domain = [category valueForKey:@"bundle"];
- if (domain) CFPreferencesAppSynchronize((CFStringRef)domain);
-  
+  if (domain) CFPreferencesAppSynchronize((CFStringRef)domain);
   
   NSPredicate *categoryPredicate = [category valueForKey:@"predicate"];
   
   // Don't show globals for now
-//  if (categoryPredicate && [category valueForKey:@"showGlobals"] ) {
-//    categoryPredicate = [NSCompoundPredicate orPredicateWithSubpredicates:[NSArray arrayWithObjects:
-//                         categoryPredicate,
-//                         [NSPredicate predicateWithFormat:@"bundle = '.GlobalPreferences'"], nil
-//                         ]];
-//                                                                                             
-//  }
+  //  if (categoryPredicate && [category valueForKey:@"showGlobals"] ) {
+  //    categoryPredicate = [NSCompoundPredicate orPredicateWithSubpredicates:[NSArray arrayWithObjects:
+  //                         categoryPredicate,
+  //                         [NSPredicate predicateWithFormat:@"bundle = '.GlobalPreferences'"], nil
+  //                         ]];
+  //                                                                                             
+  //  }
   
-  if (categoryPredicate) predicate = [NSCompoundPredicate andPredicateWithSubpredicates:[NSArray arrayWithObjects:predicate, categoryPredicate, nil]];
+  BOOL shouldSearchGlobally = ([[category valueForKey:@"globalSearch"] boolValue] && searchPredicate);
+  if (categoryPredicate && !shouldSearchGlobally) {
+    predicate = [NSCompoundPredicate andPredicateWithSubpredicates:[NSArray arrayWithObjects:predicate, categoryPredicate, nil]];
+  }
   
   [entriesController setFilterPredicate:predicate];
+  
   [self setShowInfo:category == nil];
   
   BOOL hasGroups = [[[entriesController arrangedObjects] valueForKeyPath:@"@distinctUnionOfObjects.group"] count] > 1;
@@ -1085,9 +1076,9 @@
   }
   
   [entriesTable reloadData];
-    if ([[entriesController arrangedObjects] count])
-  [entriesTable noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [[entriesController arrangedObjects] count]-1 )]];
-
+  if ([[entriesController arrangedObjects] count])
+    [entriesTable noteHeightOfRowsWithIndexesChanged:[NSIndexSet indexSetWithIndexesInRange:NSMakeRange(0, [[entriesController arrangedObjects] count]-1 )]];
+  
   
 }
 
@@ -1159,16 +1150,16 @@
   [progressIndicator stopAnimation:nil];
   
   NSAlert *errorAlert = [NSAlert alertWithMessageText:@"Update Error"
-                                         defaultButton:@"OK" 
-                                       alternateButton:nil
-                                           otherButton:nil
-                             informativeTextWithFormat:@"Could not download latest data: %@", [error localizedDescription]];
+                                        defaultButton:@"OK" 
+                                      alternateButton:nil
+                                          otherButton:nil
+                            informativeTextWithFormat:@"Could not download latest data: %@", [error localizedDescription]];
   
   [errorAlert beginSheetModalForWindow:[[self mainView] window]
-                          modalDelegate:self 
-                         didEndSelector:NULL
-                            contextInfo:NULL];
-
+                         modalDelegate:self 
+                        didEndSelector:NULL
+                           contextInfo:NULL];
+  
   NSLog(@"Connection failed! Error - %@ %@",
         [error localizedDescription],
         [[error userInfo] objectForKey:NSErrorFailingURLStringKey]);
@@ -1184,13 +1175,13 @@
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSHTTPURLResponse *)response {
-
+  
   NSInteger statusCode = [response statusCode];
   if (statusCode >= 400) {
     [connection cancel];
     [self connection:connection didFailWithError:[NSError errorWithDomain:@"HTTP Status" code:500 userInfo:
                                                   [NSDictionary dictionaryWithObjectsAndKeys:NSLocalizedDescriptionKey,[NSHTTPURLResponse localizedStringForStatusCode:500], nil]]];
-  
+    
   }
   
   

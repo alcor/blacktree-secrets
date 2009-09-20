@@ -130,6 +130,7 @@ static inline int get_bit(unsigned char *arr, unsigned long bit_num)
   return bestRep;
   return nil;
 }
+
 - (NSImageRep *)representationOfSize:(NSSize)theSize {
   NSArray *reps = [self representations];
   int i;

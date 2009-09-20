@@ -10,24 +10,25 @@
 
 @interface SecretsPref : NSPreferencePane 
 {
-	IBOutlet NSView *sidebarView;
-	
-	NSArray *categories;
-	NSMutableDictionary *bundles;
-	NSArray *entries;
-	
+  IBOutlet NSView *sidebarView;
+  
+  NSArray *categories;
+  NSMutableDictionary *bundles;
+  NSArray *entries;
+  
   IBOutlet NSDictionary *sourcesDictionary;
   
-	IBOutlet NSArrayController *categoriesController;
-	IBOutlet NSTableView  *categoriesTable;
-	IBOutlet NSArrayController *entriesController;
-	IBOutlet NSTableView  *entriesTable;
+  IBOutlet NSArrayController *categoriesController;
+  IBOutlet NSTableView  *categoriesTable;
+  IBOutlet NSArrayController *entriesController;
+  IBOutlet NSTableView  *entriesTable;
   
-	IBOutlet NSPanel *sourcesPanel;
-	
-	NSDictionary *currentEntry;
+  IBOutlet NSPanel *sourcesPanel;
+  
+  NSDictionary *currentEntry;
   IBOutlet NSProgressIndicator *progressIndicator;
   IBOutlet NSTextField *progressField;
+  IBOutlet NSTextField *searchField;
   BOOL downloading;
   BOOL showInfo;
   NSDate *previousLaunchDate;
