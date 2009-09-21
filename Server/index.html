@@ -40,8 +40,10 @@
 	<table width="600" cellpadding="5" align="center" border="0">{% for secret in secrets %}
 		<tr {% if secret.hidden or secret.is_broken or secret.deleted %} style="opacity: 0.3;"{% endif %}>
 			<td align="right" valign="top">
+				<a href="?showapp={{secret.bundle}}">
 				{{ secret.display_app|escape }}
 				{% if secret.minversion %}<!-- {#and preference.minversion.length#} -->({{ secret.minversion }}){% endif %}
+				</a>
 			</td>
 			<td width="32">
 				<img class="icon" src="/images/bundleicons/{{secret.display_icon}}.png">

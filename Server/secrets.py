@@ -37,12 +37,12 @@ DATA_TYPES = (
 ("Color", "color"),
 ("URL", "url")
 )
-  
+
 class Secret(search.SearchableModel):
   author = db.UserProperty()
   editor = db.UserProperty()
   old_id = db.IntegerProperty()
-
+  
   bundle = db.StringProperty(verbose_name="Bundle ID")
   display_bundle = db.StringProperty()
   app_reference = db.ReferenceProperty(Bundle)
@@ -82,7 +82,7 @@ class Secret(search.SearchableModel):
   
   def is_editable(self):
     return (datetime.datetime.today() - self.created_at) < datetime.timedelta(minutes=3)
-    
+  
   def default_string(self):
     valid = True
     
@@ -92,7 +92,7 @@ class Secret(search.SearchableModel):
     termbundle = self.bundle
     if self.set_for_all_users:
       termbundle = "/Library/Preferences/" + termbundle;
-   
+    
     if self.bundle == ".GlobalPreferences":
        termbundle = "-g"
     
@@ -101,7 +101,7 @@ class Secret(search.SearchableModel):
       
       if (self.current_host_only):
         default_string += "-currentHost "
-        
+      
       default_string += "write " + termbundle + " " + self.keypath + " [" + self.datatype + "]"
       return default_string;
     else:
@@ -112,12 +112,12 @@ class Secret(search.SearchableModel):
   
   def display_title(self):
     title = self.title
-
+    
     if title.length == 0:
       title = "(untitled)"
     
     return title
-    
+  
   def display_icon(self):
       if self.display_bundle:
         bundle = self.display_bundle
@@ -127,12 +127,12 @@ class Secret(search.SearchableModel):
       if bundle == ".GlobalPreferences":
         bundle = "GlobalPreferences"
       return bundle
-      
+  
   def display_app(self):
     bundle = self.bundle
     if bundle:
       bundle = bundle.split('.')[-1]
-  
+    
     display_bundle = self.display_bundle
     # if display_bundle:
     #   if (len(display_bundle) > 0):
@@ -141,34 +141,34 @@ class Secret(search.SearchableModel):
     # if (display_bundle == "prefPane" | display_bundle == "editor"  | display_bundle == "bundle" | display_bundle == "launcher"):
     #    # display_bundle = self.display_bundle.split('.')[-2]
     #    display_bundle = self.display_bundle.split('/')[-1]
-    #   
+    #
     
     if bundle == "GlobalPreferences":
       bundle = "Every App"
-  
+    
     if bundle == "kCFPreferencesCurrentApplication":
       bundle = "Any App"
-      
+    
     if self.display_bundle:
       bundle = display_bundle.split('.')[-1]
     return bundle
     
     #  def put_value (key, type, xml)
-    # 
+    #
     #     value = eval "self." + key
     #     if (value)
     #         xml.key(key)
     #         xml.string(value)
     #       end
     # end
-    
+
 class SecretForm(djangoforms.ModelForm):
   class Meta:
     model = Secret
     exclude = ['hostname', 'username', 'author', 'editor', 'app_reference', 'top_secret', 'old_id']
-    
+
 class PlistSecret(webapp.RequestHandler):
-  def get(self):    
+  def get(self):
     self.response.headers['Secrets-Version'] = "1.0.6"
     self.response.headers['Content-Type'] = 'text/xml; charset=utf-8'
     output = memcache.get("plist")
@@ -189,8 +189,8 @@ class PlistSecret(webapp.RequestHandler):
       self.response.headers['Cached'] = 'yes'
     self.response.out.write(output)
 class TextSecret(webapp.RequestHandler):
-  def get(self):    
-    output = memcache.get("txt")    
+  def get(self):
+    output = memcache.get("txt")
     self.response.headers['Content-Type'] = 'text; charset=utf-8'
     if output is None:
       plist_content = ''
@@ -213,29 +213,36 @@ class MainPage(webapp.RequestHandler):
     showall = self.request.get('show') == 'all'
     showrecent = self.request.get('show') == 'recent'
     showdeleted = self.request.get('show') == 'deleted'
+    showapp = self.request.get('showapp')
     search_string = self.request.get('search')
-
+    
     warning = None
     message = None
     title = None
-
+    
     page = self.request.get('page')
     next_page = None;
     prev_page = None;
     cachename = "index-" + self.request.get('show') + "-" + page
+    
+    if showapp:
+      cachename = None
+      if (len(showapp) <=3):
+	      showapp = None
+	      warning = "invalid app or bundle identifier"
     
     if search_string:
       cachename = None
       if (len(search_string) <= 3):
         search_string = None
         warning = "searches must be longer than 3 characters"
-        
+    
     if page != None and page != '':
       page = int(page)
       if page > 0:
           prev_page = str(page - 1);
     else:
-      page = 0  
+      page = 0
     next_page = str(page + 1);
     
     output = None
@@ -262,6 +269,15 @@ class MainPage(webapp.RequestHandler):
         query = db.GqlQuery("SELECT * FROM Secret WHERE deleted = True "
                               "ORDER BY created_at DESC")
         secrets = query.fetch(100, 100 * page)
+
+      elif showapp is not None and len(showapp) > 5:
+        title = "\"%s\"" % (showapp)
+        query = db.GqlQuery("SELECT * FROM Secret WHERE bundle = '%s'" % showapp)
+        secrets = query.fetch(100)
+        count = len(secrets)
+        if (count is None):
+          warning = "no matches"
+
       elif search_string is not None and len(search_string) > 3:
         title = "\"%s\"" % (search_string)
         query = Secret.all().search(search_string)
@@ -279,31 +295,31 @@ class MainPage(webapp.RequestHandler):
         query.filter('top_secret =', True)
         secrets = query.fetch(100, 100 * page)
       
-      template_values = {'secrets': secrets, 
+      template_values = {'secrets': secrets,
                          'warning': warning,
                          'search_string' : search_string,
                          'message': message,
                          'title': title,
-                         'showall': showall, 
-                         'next_page': next_page, 
+                         'showall': showall,
+                         'next_page': next_page,
                          'prev_page': prev_page}
       
       path = os.path.join(os.path.dirname(__file__), 'index.html')
       output = template.render('index.html', template_values)
       if cachename is not None:
-        memcache.add(cachename, output) 
+        memcache.add(cachename, output)
       self.response.out.write(output)
-    
+
 class DeleteSecret(webapp.RequestHandler):
   def post(self):
     if (users.is_current_user_admin()):
-      id = self.request.get('_id') 
+      id = self.request.get('_id')
       item = Secret.get(db.Key.from_path('Secret', int(id)))
       item.deleted = True
       item.put()
       memcache.flush_all()
       self.redirect('/')
-    
+
 class EditSecret(webapp.RequestHandler):
   def get(self):
     if users.get_current_user():
@@ -336,11 +352,11 @@ class EditSecret(webapp.RequestHandler):
     else:
       template_values['form'] = SecretForm()
       template_values['iseditable'] = loggedin
-      
+    
     self.response.out.write(template.render('form.html', template_values))
   
   def post(self):
-    id = self.request.get('_id') 
+    id = self.request.get('_id')
     dups = None
     if id:
       item = Secret.get(db.Key.from_path('Secret', int(id)))
@@ -351,8 +367,8 @@ class EditSecret(webapp.RequestHandler):
                           self.request.get('bundle'), self.request.get('keypath'))
       data = SecretForm(data = self.request.POST)
       self.response.out.write(dups.count())
-
       
+    
     if data.is_valid() and (dups == None or dups.count() == 0):
       # Save the data, and redirect to the view page
       entity = data.save(commit=False)
@@ -368,14 +384,14 @@ class EditSecret(webapp.RequestHandler):
         self.response.out.write(template.render('form.html', {'form':data, 'id':id}))
       else:
         self.response.out.write(template.render('form.html', {'form':data, 'dups':dups}))
-      
+
 class FlushSecrets(webapp.RequestHandler):
   def get(self):
     if (users.is_current_user_admin()):
       secrets = Secret.all().filter("deleted = ", True).fetch(1000)
       self.response.out.write("Flushed %(page)d" % {'page': len(secrets)})
       memcache.flush_all()
-      
+
 class DeleteSecrets(webapp.RequestHandler):
   def get(self):
     if (users.is_current_user_admin()):
@@ -383,19 +399,19 @@ class DeleteSecrets(webapp.RequestHandler):
       self.response.out.write("Deleted %(page)d" % {'page': len(secrets)})
       db.delete(secrets)
       memcache.flush_all()
-     
+
 
 class RSSNewSecret(webapp.RequestHandler):
-  def get(self):    
+  def get(self):
     output = memcache.get("rss-new")
     if output is None:
       secrets = Secret.all().order('-created_at').fetch(10)
       output = template.render("rss.xml", {'secrets':secrets})
       memcache.add("rss-new", output)
-
-    # self.response.headers['Content-Type'] = 'text/rss+xml; charset=utf-8'      
-    self.response.out.write(output)
     
+    # self.response.headers['Content-Type'] = 'text/rss+xml; charset=utf-8'
+    self.response.out.write(output)
+
 class RSSUpdatedSecret(webapp.RequestHandler):
   def get(self):
     output = memcache.get("rss-updated")
@@ -403,7 +419,7 @@ class RSSUpdatedSecret(webapp.RequestHandler):
       secrets = Secret.all().order('-updated_at').fetch(10)
       output = template.render("rss.xml", {'secrets':secrets})
       memcache.add("rss-updated", output)
-   
+    
     self.response.headers['Content-Type'] = 'text/rss+xml; charset=utf-8'
     self.response.out.write(output)
 
@@ -444,7 +460,7 @@ class Backup(webapp.RequestHandler):
       self.response.out.write("Next...")
     else:
       self.response.out.write("Done")
-                                         
+
 def main():
   application = webapp.WSGIApplication(
                                        [('/rss/updated', RSSUpdatedSecret),
