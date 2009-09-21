@@ -22,12 +22,27 @@ Secret #{{id}}
 This secret will be editable by anyone for 3 days.<br>
 {% endif %}
 
-
 <br><a href="http://code.google.com/p/blacktree-secrets/wiki/EditorTips" target="_new">Learn how to fill out these fields</a>
 
 - <a href="{{url}}">{% if loggedin %}Sign out{% else %}Sign in{% endif %}</a>
 </span><br>
 </p>
+
+{% if dups %}
+<center>
+<div class="warning" style="width:400px; background-color:#ffa;">
+This secret is a duplicate of:<br>
+{% for secret in dups %}
+			{{ secret.display_app|escape }}
+			{% if secret.minversion %}<!-- {#and preference.minversion.length#} -->({{ secret.minversion }}){% endif %}
+			<img class="icon" style="width:16; height:16"src="/images/bundleicons/{{secret.display_icon}}.png">
+			<a href="edit?id={{secret.key.id}}" style="{% if secret.hidden or secret.is_broken %}color: gray;{% endif %}">{{secret.title}}</a> - {{ secret.bundle }} - {{ secret.keypath }}<br>
+			
+	{% endfor %}
+	</div>
+	</center>
+{% endif %}
+
 
 <form id="editform" {% if iseditable %} method="POST" action="/edit" {% else %} action="/submit" {% endif %} >
 <center>

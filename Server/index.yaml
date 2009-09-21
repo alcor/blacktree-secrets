@@ -10,70 +10,7 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
-# Used 2 times in query history.
-- kind: Secret
-  properties:
-  - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: created_at
-    direction: desc
-
-# Used 2 times in query history.
-- kind: Secret
-  properties:
-  - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: deleted
-  - name: created_at
-    direction: desc
-
-# Used 4 times in query history.
-- kind: Secret
-  properties:
-  - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: created_at
-    direction: desc
-
-# Used 2 times in query history.
-- kind: Secret
-  properties:
-  - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: deleted
-  - name: created_at
-    direction: desc
-
-# Used 3 times in query history.
-- kind: Secret
-  properties:
-  - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: created_at
-    direction: desc
-
-# Used 2 times in query history.
-- kind: Secret
-  properties:
-  - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: deleted
-  - name: created_at
-    direction: desc
-
-# Used once in query history.
+# Unused in query history -- copied from input.
 - kind: Secret
   properties:
   - name: __searchable_text_index
@@ -81,31 +18,14 @@ indexes:
   - name: created_at
     direction: desc
 
-# Used 4 times in query history.
-- kind: Secret
-  properties:
-  - name: __searchable_text_index
-  - name: __searchable_text_index
-  - name: deleted
-  - name: created_at
-    direction: desc
-
-# Used 46 times in query history.
+# Unused in query history -- copied from input.
 - kind: Secret
   properties:
   - name: __searchable_text_index
   - name: created_at
     direction: desc
 
-# Used 9 times in query history.
-- kind: Secret
-  properties:
-  - name: __searchable_text_index
-  - name: deleted
-  - name: created_at
-    direction: desc
-
-# Used 16 times in query history.
+# Unused in query history -- copied from input.
 - kind: Secret
   properties:
   - name: created_at
@@ -119,7 +39,7 @@ indexes:
   - name: updated_at
     direction: desc
 
-# Used 13 times in query history.
+# Used 9 times in query history.
 - kind: Secret
   properties:
   - name: deleted
