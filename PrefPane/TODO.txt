@@ -1,0 +1,9 @@
+Secrets TODO List
+
+* Better Entry Form
+
+* Ability to show list of secrets per app
+
+* Ability to download termCommands
+
+* Add App table, Normalize DB somewhat
