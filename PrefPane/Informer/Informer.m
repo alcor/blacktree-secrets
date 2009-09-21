@@ -6,6 +6,7 @@
 
 #import <Foundation/Foundation.h>
 #import "dyld-interposing.h"
+#import "/usr/include/objc/runtime.h"
 
 void NoteCFPreferencesInfo(NSString * key, NSString * infoKey, CFPropertyListRef value, CFStringRef applicationID, CFStringRef userName, CFStringRef hostName) {
   NSAutoreleasePool *pool = [NSAutoreleasePool new];
@@ -20,8 +21,7 @@ void NoteCFPreferencesInfo(NSString * key, NSString * infoKey, CFPropertyListRef
   
   NSString *basepath = [@"~/Library/Caches/Informer" stringByStandardizingPath];
   if (isNS) key = [@"Apple/" stringByAppendingString:key];
-  
-  
+
   // Accessing own domain
   if (CFEqual(applicationID, kCFPreferencesCurrentApplication)) {
     applicationID = (CFStringRef)[basepath stringByAppendingFormat:@"/%@./%@",identifier, key];
@@ -39,22 +39,14 @@ void NoteCFPreferencesInfo(NSString * key, NSString * infoKey, CFPropertyListRef
   CFPreferencesAppSynchronize((CFStringRef)applicationID);
   [pool release];
 }
-
-
-
-
-
   
 @implementation NSUserDefaults (Informer)
-
 
 - (id)secretObjectForKey:(NSString *)defaultName{
   id value = [self secretObjectForKey:defaultName];
   NoteCFPreferencesInfo(defaultName, @"ndvalue", value, kCFPreferencesCurrentApplication, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
   return value;
 }
-
-
 
 - (NSArray *)secretArrayForKey:(NSString *)defaultName {
   NoteCFPreferencesInfo(defaultName, @"type", @"array", kCFPreferencesCurrentApplication, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
@@ -91,7 +83,6 @@ void NoteCFPreferencesInfo(NSString * key, NSString * infoKey, CFPropertyListRef
   return [self secretDoubleForKey:defaultName];
 }
 
-
 - (NSString *)secretStringForKey:(NSString *)defaultName {
   NoteCFPreferencesInfo(defaultName, @"type", @"string", kCFPreferencesCurrentApplication, kCFPreferencesCurrentUser, kCFPreferencesAnyHost);
   return [self secretStringForKey:defaultName];
@@ -115,7 +106,6 @@ CFDictionaryRef MyCFPreferencesCopyMultiple(CFArrayRef keysToFetch, CFStringRef 
   printf("multiple");
   return CFPreferencesCopyMultiple( keysToFetch,  applicationID,  userName,  hostName);
 }
-
 
 void MyCFPreferencesAddSuitePreferencesToApp(CFStringRef applicationID, CFStringRef suiteID) {
   NSLog(@"addsuite %@", applicationID);
@@ -154,7 +144,6 @@ void MyConstructor(void) {
   
   NSLog(@"Informer loaded");
   if ([[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.blacktree.Quicksilver"]) return;
-  if ([[[NSBundle mainBundle] bundleIdentifier] isEqualToString:@"com.apple.systempreferences"]) return;
   
   Class D = [NSUserDefaults class];
   method_exchangeImplementations(class_getInstanceMethod(D, @selector(secretRegisterDefaults:)),
@@ -165,8 +154,6 @@ void MyConstructor(void) {
                                  class_getInstanceMethod(D, @selector(stringForKey:)));
   method_exchangeImplementations(class_getInstanceMethod(D, @selector(secretBoolForKey:)),
                                  class_getInstanceMethod(D, @selector(boolForKey:)));
-  
-  
   method_exchangeImplementations(class_getInstanceMethod(D, @selector(secretArrayForKey:)),
                                  class_getInstanceMethod(D, @selector(arrayForKey:)));
   method_exchangeImplementations(class_getInstanceMethod(D, @selector(secretDictionaryForKey:)),

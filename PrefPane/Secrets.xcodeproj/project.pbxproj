@@ -15,6 +15,7 @@
 		7F1972B90D74201D00F580DC /* NSSortDescriptor+BLTRExtensions.m in Sources */ = {isa = PBXBuildFile; fileRef = 7F1972B10D74201D00F580DC /* NSSortDescriptor+BLTRExtensions.m */; };
 		7F1C40B50E1C6F4800AA2052 /* Secrets.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7F1C40B40E1C6F4800AA2052 /* Secrets.plist */; };
 		7F704BA30D6EAD5C00879138 /* SecretsPref.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7F704BA10D6EAD5C00879138 /* SecretsPref.xib */; };
+		7FA39DFD106745A8001ED884 /* libobjc.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7FA39DFC106745A8001ED884 /* libobjc.dylib */; };
 		7FAA8C6A0D753E1C00F81F30 /* Secrets-small.png in Resources */ = {isa = PBXBuildFile; fileRef = 7FAA8C690D753E1C00F81F30 /* Secrets-small.png */; };
 		7FD490F20D7A865000DD7588 /* Application.png in Resources */ = {isa = PBXBuildFile; fileRef = 7FD490F10D7A865000DD7588 /* Application.png */; };
 		7FD4919B0D7A948B00DD7588 /* Secrets.icns in Resources */ = {isa = PBXBuildFile; fileRef = 7FD4919A0D7A948B00DD7588 /* Secrets.icns */; };
@@ -41,6 +42,7 @@
 		7F1972B10D74201D00F580DC /* NSSortDescriptor+BLTRExtensions.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSSortDescriptor+BLTRExtensions.m"; sourceTree = "<group>"; };
 		7F1C40B40E1C6F4800AA2052 /* Secrets.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Secrets.plist; sourceTree = "<group>"; };
 		7F704BA20D6EAD5C00879138 /* English */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = English; path = English.lproj/SecretsPref.xib; sourceTree = "<group>"; };
+		7FA39DFC106745A8001ED884 /* libobjc.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libobjc.dylib; path = usr/lib/libobjc.dylib; sourceTree = SDKROOT; };
 		7FAA8C690D753E1C00F81F30 /* Secrets-small.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "Secrets-small.png"; sourceTree = "<group>"; };
 		7FD490F10D7A865000DD7588 /* Application.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = Application.png; sourceTree = "<group>"; };
 		7FD4919A0D7A948B00DD7588 /* Secrets.icns */ = {isa = PBXFileReference; lastKnownFileType = image.icns; path = Secrets.icns; sourceTree = "<group>"; };
@@ -61,6 +63,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				7FFC7F670D7E514000499B8E /* Foundation.framework in Frameworks */,
+				7FA39DFD106745A8001ED884 /* libobjc.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -88,6 +91,7 @@
 				089C167CFE841241C02AAC07 /* Resources */,
 				089C1671FE841209C02AAC07 /* Frameworks and Libraries */,
 				19C28FB8FE9D52D311CA2CBB /* Products */,
+				7FA39DFC106745A8001ED884 /* libobjc.dylib */,
 			);
 			name = Secrets;
 			sourceTree = "<group>";
@@ -399,9 +403,7 @@
 				DYLIB_CURRENT_VERSION = 1;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_FIX_AND_CONTINUE = YES;
-				GCC_ENABLE_OBJC_GC = unsupported;
-				GCC_MODEL_TUNING = G5;
-				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_ENABLE_OBJC_GC = supported;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
 				INSTALL_PATH = /usr/local/lib;
@@ -413,7 +415,6 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = Informer;
-				ZERO_LINK = YES;
 			};
 			name = Debug;
 		};
@@ -424,9 +425,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
-				GCC_ENABLE_FIX_AND_CONTINUE = NO;
-				GCC_ENABLE_OBJC_GC = unsupported;
-				GCC_MODEL_TUNING = G5;
+				GCC_ENABLE_OBJC_GC = supported;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "$(SYSTEM_LIBRARY_DIR)/Frameworks/AppKit.framework/Headers/AppKit.h";
 				INSTALL_PATH = /usr/local/lib;
@@ -438,7 +437,6 @@
 				);
 				PREBINDING = NO;
 				PRODUCT_NAME = Informer;
-				ZERO_LINK = NO;
 			};
 			name = Release;
 		};
