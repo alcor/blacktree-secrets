@@ -125,6 +125,10 @@ class Secret(search.SearchableModel):
       
       if bundle == ".GlobalPreferences" or bundle == "NSGlobalDomain":
         bundle = "GlobalPreferences"
+      bundle = "./images/bundleicons/" + bundle + ".png"
+      
+      #if not os.path.isfile(bundle):
+      #  bundle = "test.png"
       return bundle
   
   def display_app(self):
