@@ -211,6 +211,13 @@ class TextSecret(webapp.RequestHandler):
 
 class MainPage(webapp.RequestHandler):
   def get(self):
+    
+    version = os.environ["CURRENT_VERSION_ID"];
+    if (memcache.get("CURRENT_VERSION_ID") != version):
+      memcache.flush_all()
+      memcache.add("CURRENT_VERSION_ID", version)
+      self.response.out.write("<!--version changed, purging caches-->")
+      
     query = Secret.all()
     
     showall = self.request.get('show') == 'all'
@@ -252,8 +259,8 @@ class MainPage(webapp.RequestHandler):
     if not self.request.get('ignorecache') and cachename:
       output = memcache.get(cachename)
     if output is not None:
-      self.response.out.write(output)
       self.response.out.write("<!--loaded from cache-->")
+      self.response.out.write(output)
       #self.response.out.write(memcache.get_stats())
     else:
       query.filter('deleted ==', False)
@@ -403,13 +410,18 @@ class DeleteSecrets(webapp.RequestHandler):
       db.delete(secrets)
       memcache.flush_all()
 
+class PrintEnvironmentHandler(webapp.RequestHandler):
+  def get(self):
+    if (users.is_current_user_admin()):
+      for name in os.environ.keys():
+        self.response.out.write("%s = %s<br />\n" % (name, os.environ[name]))
 
 class RSSNewSecret(webapp.RequestHandler):
   def get(self):
     output = memcache.get("rss-new")
     if output is None:
-      secrets = Secret.all().order('-created_at').fetch(10)
-      output = template.render("rss.xml", {'secrets':secrets})
+      secrets = Secret.all().order('-created_at').fetch(20)
+      output = template.render("rss.xml", {'secrets':secrets, 'title': 'Recently Added'})
       memcache.add("rss-new", output)
     
     # self.response.headers['Content-Type'] = 'text/rss+xml; charset=utf-8'
@@ -419,8 +431,8 @@ class RSSUpdatedSecret(webapp.RequestHandler):
   def get(self):
     output = memcache.get("rss-updated")
     if output is None:
-      secrets = Secret.all().order('-updated_at').fetch(10)
-      output = template.render("rss.xml", {'secrets':secrets})
+      secrets = Secret.all().order('-updated_at').fetch(20)
+      output = template.render("rss.xml", {'secrets':secrets, 'title': 'Recently Updated'})
       memcache.add("rss-updated", output)
     
     self.response.headers['Content-Type'] = 'text/rss+xml; charset=utf-8'
@@ -472,6 +484,7 @@ def main():
                                         ('/edit', EditSecret),
                                         ('/txt', TextSecret),
                                         ('/plist', PlistSecret),
+                                        ('/env', PrintEnvironmentHandler),
                                         # ('/backup', Backup),
                                         ('/flush', FlushSecrets),
                                         ('/', MainPage)],

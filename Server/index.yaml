@@ -39,7 +39,7 @@ indexes:
   - name: updated_at
     direction: desc
 
-# Used once in query history.
+# Used 7 times in query history.
 - kind: Secret
   properties:
   - name: deleted
