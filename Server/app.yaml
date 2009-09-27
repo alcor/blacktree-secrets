@@ -4,6 +4,7 @@ runtime: python
 api_version: 1
 
 handlers:
+
 - url: /stylesheets
   static_dir: static/stylesheets
 
@@ -21,8 +22,12 @@ handlers:
 - url: /images
   static_dir: static/images
 
+- url: /remote_api
+  script: $PYTHON_LIB/google/appengine/ext/remote_api/handler.py
+  login: admin
+
 - url: /load
   script: myloader.py
-  
+
 - url: /.*
   script: secrets.py

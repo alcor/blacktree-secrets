@@ -17,7 +17,6 @@ class Bundle(db.Model):
   name = db.StringProperty()
   icon = db.LinkProperty()
 
-
 DATA_TYPES = (
 ("Boolean", "boolean"),
 ("Boolean (Negate)", "boolean-neg"),
@@ -60,7 +59,7 @@ class Secret(search.SearchableModel):
   maxosversion = db.StringProperty(verbose_name="Max OS Version")
   group = db.StringProperty()
   placeholder = db.StringProperty()
-  pony = db.StringProperty()
+  source_url = db.StringProperty()
   values = db.StringProperty(multiline=True)
   description = db.StringProperty(multiline=True)
   notes = db.StringProperty(multiline=True)
@@ -93,9 +92,9 @@ class Secret(search.SearchableModel):
     if self.set_for_all_users:
       termbundle = "/Library/Preferences/" + termbundle;
     
-    if self.bundle == ".GlobalPreferences":
+    if termbundle == ".GlobalPreferences" or (termbundle == "NSGlobalDomain"):
        termbundle = "-g"
-    
+       
     if valid:
       default_string = "defaults "
       
@@ -124,7 +123,7 @@ class Secret(search.SearchableModel):
       else:
         bundle = self.bundle
       
-      if bundle == ".GlobalPreferences":
+      if bundle == ".GlobalPreferences" or bundle == "NSGlobalDomain":
         bundle = "GlobalPreferences"
       return bundle
   
@@ -258,7 +257,7 @@ class MainPage(webapp.RequestHandler):
         title = "Recent Secrets"
         query = db.GqlQuery("SELECT * FROM Secret WHERE deleted = False "
                             "ORDER BY created_at DESC")
-        secrets = query.fetch(10)
+        secrets = query.fetch(30)
       elif showall == True:
         title = "All Secrets: page %d" % (page + 1)
         query = db.GqlQuery("SELECT * FROM Secret WHERE deleted = False "
