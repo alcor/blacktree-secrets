@@ -36,7 +36,15 @@ This secret will be editable by anyone for 3 days.<br>
 - <a href="{{url}}">{% if loggedin %}Sign out{% else %}Sign in{% endif %}</a>
 </span><br>
 </p>
+<div class="byline">
+	{% if secret.author %}
+Created by {{secret.author.nickname}} on {{secret.created_at|date:"M d"}}<br>
+{% endif%}
 
+{% if secret.editor %}
+Edited by {{secret.editor.nickname}} on {{secret.updated_at|date:"M d"}}<br>
+{% endif%}
+</div>
 {% if dups %}
 <center>
 <div class="warning" style="width:400px; background-color:#ffa;">

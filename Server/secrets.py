@@ -101,10 +101,10 @@ class Secret(search.SearchableModel):
       if (self.current_host_only):
         default_string += "-currentHost "
       
-      default_string += "write " + termbundle + " " + self.keypath + " [" + self.datatype + "]"
+      default_string += "write " + termbundle + " " + self.keypath + " -" + self.datatype + " "
       return default_string;
     else:
-      return termbundle + " " + self.keypath + " [" + self.datatype + "]"
+      return termbundle + " " + self.keypath + " -" + self.datatype + " "
   
   def remove_string(self):
     return "defaults delete " + bundle + " " + keypath
@@ -168,7 +168,7 @@ class Secret(search.SearchableModel):
 class SecretForm(djangoforms.ModelForm):
   class Meta:
     model = Secret
-    exclude = ['hostname', 'username', 'author', 'editor', 'app_reference', 'top_secret', 'old_id']
+    exclude = ['hostname', 'username', 'author', 'editor', 'app_reference', 'old_id']
 
 class PlistSecret(webapp.RequestHandler):
   def get(self):
@@ -303,6 +303,7 @@ class MainPage(webapp.RequestHandler):
           message = "no matches"
       else:
         query.filter('top_secret =', True)
+        #query.order('bundle')
         secrets = query.fetch(100, 100 * page)
       
       template_values = {'secrets': secrets,

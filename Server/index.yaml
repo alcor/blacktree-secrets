@@ -10,6 +10,12 @@ indexes:
 # automatically uploaded to the admin console when you next deploy
 # your application using appcfg.py.
 
+- kind: Secret
+  properties:
+  - name: deleted
+  - name: top_secret
+  - name: bundle
+
 # Unused in query history -- copied from input.
 - kind: Secret
   properties:
@@ -39,12 +45,19 @@ indexes:
   - name: updated_at
     direction: desc
 
-# Used 7 times in query history.
+# Used 2 times in query history.
 - kind: Secret
   properties:
   - name: deleted
   - name: created_at
     direction: desc
+
+# Used once in query history.
+- kind: Secret
+  properties:
+  - name: deleted
+  - name: top_secret
+  - name: bundle
 
 # Unused in query history -- copied from input.
 - kind: Secret
