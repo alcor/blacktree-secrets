@@ -1,8 +1,10 @@
 Secrets TODO List
 
-* Better Entry Form
+Pref Pane:
+ * Enable max/min OS version and max/min App version
 
-* Ability to show list of secrets per app
+Website:
+* Better Entry Form
 
 * Ability to download termCommands
 
