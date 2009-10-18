@@ -1166,6 +1166,20 @@
 }
 
 - (IBAction)showHelp:(id)sender {
+  if ([[NSApp currentEvent] modifierFlags] & NSAlternateKeyMask)
+  {
+	  NSBundle *bundle = [NSBundle bundleForClass:[self class]];
+	  NSAlert *showVersion = [NSAlert alertWithMessageText:@"About Secrets" 
+											 defaultButton:@"OK" 
+										   alternateButton:nil
+											   otherButton:nil 
+								 informativeTextWithFormat:@"Version: %@", [bundle objectForInfoDictionaryKey:(NSString *)kCFBundleVersionKey]];
+	  NSImage *secretsIcon = [[NSImage alloc] initWithContentsOfFile:[bundle pathForResource:@"Secrets" ofType:@"icns"]];
+	  [showVersion setIcon:secretsIcon];
+	  [showVersion runModal];
+	  [secretsIcon release];
+	  return;
+  }
   [[NSWorkspace sharedWorkspace] openURL:kSecretsHelpURL];
 }
 

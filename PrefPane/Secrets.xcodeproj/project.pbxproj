@@ -16,9 +16,7 @@
 		7F1C40B50E1C6F4800AA2052 /* Secrets.plist in Resources */ = {isa = PBXBuildFile; fileRef = 7F1C40B40E1C6F4800AA2052 /* Secrets.plist */; };
 		7F704BA30D6EAD5C00879138 /* SecretsPref.xib in Resources */ = {isa = PBXBuildFile; fileRef = 7F704BA10D6EAD5C00879138 /* SecretsPref.xib */; };
 		7FA39DFD106745A8001ED884 /* libobjc.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 7FA39DFC106745A8001ED884 /* libobjc.dylib */; };
-		7FAA8C6A0D753E1C00F81F30 /* Secrets-small.png in Resources */ = {isa = PBXBuildFile; fileRef = 7FAA8C690D753E1C00F81F30 /* Secrets-small.png */; };
 		7FD490F20D7A865000DD7588 /* Application.png in Resources */ = {isa = PBXBuildFile; fileRef = 7FD490F10D7A865000DD7588 /* Application.png */; };
-		7FD4919B0D7A948B00DD7588 /* Secrets.icns in Resources */ = {isa = PBXBuildFile; fileRef = 7FD4919A0D7A948B00DD7588 /* Secrets.icns */; };
 		7FEB02540D7D22D700F4D367 /* Carbon.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7FEB02530D7D22D700F4D367 /* Carbon.framework */; };
 		7FFC7F650D7E512B00499B8E /* Informer.m in Sources */ = {isa = PBXBuildFile; fileRef = 7FFC7F450D7E50BA00499B8E /* Informer.m */; };
 		7FFC7F670D7E514000499B8E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 089C1672FE841209C02AAC07 /* Foundation.framework */; };
@@ -27,6 +25,8 @@
 		8D202CF10486D31800D8A456 /* SecretsPref.m in Sources */ = {isa = PBXBuildFile; fileRef = F506C03D013D9D7901CA16C8 /* SecretsPref.m */; };
 		8D202CF30486D31800D8A456 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7ADFEA557BF11CA2CBB /* Cocoa.framework */; };
 		8D202CF40486D31800D8A456 /* PreferencePanes.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F506C035013D953901CA16C8 /* PreferencePanes.framework */; };
+		9946DA98108BA9A2007D41CD /* Secrets.icns in Resources */ = {isa = PBXBuildFile; fileRef = 7FD4919A0D7A948B00DD7588 /* Secrets.icns */; };
+		9946DA99108BA9A2007D41CD /* Secrets-small.png in Resources */ = {isa = PBXBuildFile; fileRef = 7FAA8C690D753E1C00F81F30 /* Secrets-small.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -52,6 +52,7 @@
 		7FFC7F450D7E50BA00499B8E /* Informer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Informer.m; sourceTree = "<group>"; };
 		8D202CF70486D31800D8A456 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		8D202CF80486D31800D8A456 /* Secrets.prefPane */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = Secrets.prefPane; sourceTree = BUILT_PRODUCTS_DIR; };
+		99D3C498106719F7001D475D /* TODO.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = TODO.txt; sourceTree = "<group>"; };
 		F506C035013D953901CA16C8 /* PreferencePanes.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = PreferencePanes.framework; path = /System/Library/Frameworks/PreferencePanes.framework; sourceTree = "<absolute>"; };
 		F506C03C013D9D7901CA16C8 /* SecretsPref.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SecretsPref.h; sourceTree = "<group>"; };
 		F506C03D013D9D7901CA16C8 /* SecretsPref.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = SecretsPref.m; sourceTree = "<group>"; };
@@ -111,6 +112,7 @@
 				7F1C40B40E1C6F4800AA2052 /* Secrets.plist */,
 				7FD490F10D7A865000DD7588 /* Application.png */,
 				8D202CF70486D31800D8A456 /* Info.plist */,
+				99D3C498106719F7001D475D /* TODO.txt */,
 				7FAA8C690D753E1C00F81F30 /* Secrets-small.png */,
 				7FD4919A0D7A948B00DD7588 /* Secrets.icns */,
 				7F704BA10D6EAD5C00879138 /* SecretsPref.xib */,
@@ -263,10 +265,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				7F704BA30D6EAD5C00879138 /* SecretsPref.xib in Resources */,
-				7FAA8C6A0D753E1C00F81F30 /* Secrets-small.png in Resources */,
 				7FD490F20D7A865000DD7588 /* Application.png in Resources */,
-				7FD4919B0D7A948B00DD7588 /* Secrets.icns in Resources */,
 				7F1C40B50E1C6F4800AA2052 /* Secrets.plist in Resources */,
+				9946DA98108BA9A2007D41CD /* Secrets.icns in Resources */,
+				9946DA99108BA9A2007D41CD /* Secrets-small.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
