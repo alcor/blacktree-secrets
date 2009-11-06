@@ -12,32 +12,22 @@ indexes:
 
 - kind: Secret
   properties:
-  - name: deleted
-  - name: top_secret
-  - name: bundle
-
-# Unused in query history -- copied from input.
-- kind: Secret
-  properties:
   - name: __searchable_text_index
   - name: __searchable_text_index
   - name: created_at
     direction: desc
 
-# Unused in query history -- copied from input.
 - kind: Secret
   properties:
   - name: __searchable_text_index
   - name: created_at
     direction: desc
 
-# Unused in query history -- copied from input.
 - kind: Secret
   properties:
   - name: created_at
     direction: desc
 
-# Unused in query history -- copied from input.
 - kind: Secret
   properties:
   - name: created_at
@@ -45,27 +35,23 @@ indexes:
   - name: updated_at
     direction: desc
 
-# Used 2 times in query history.
 - kind: Secret
   properties:
   - name: deleted
   - name: created_at
     direction: desc
 
-# Used once in query history.
 - kind: Secret
   properties:
   - name: deleted
   - name: top_secret
   - name: bundle
 
-# Unused in query history -- copied from input.
 - kind: Secret
   properties:
   - name: deleted
     direction: desc
 
-# Unused in query history -- copied from input.
 - kind: Secret
   properties:
   - name: deleted
@@ -73,14 +59,12 @@ indexes:
   - name: created_at
     direction: desc
 
-# Unused in query history -- copied from input.
 - kind: Secret
   properties:
   - name: top_secret
   - name: created_at
     direction: desc
 
-# Unused in query history -- copied from input.
 - kind: Secret
   properties:
   - name: updated_at

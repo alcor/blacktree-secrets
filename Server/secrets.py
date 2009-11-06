@@ -2,6 +2,7 @@ import cgi
 import wsgiref.handlers
 import os
 import datetime
+
 from google.appengine.api import users
 from google.appengine.ext import webapp
 from google.appengine.ext import db
@@ -125,7 +126,7 @@ class Secret(search.SearchableModel):
       
       if bundle == ".GlobalPreferences" or bundle == "NSGlobalDomain":
         bundle = "GlobalPreferences"
-      bundle = "./images/bundleicons/" + bundle + ".png"
+      bundle = "/images/bundleicons/" + bundle + ".png"
       
       #if not os.path.isfile(bundle):
       #  bundle = "test.png"
@@ -360,6 +361,10 @@ class EditSecret(webapp.RequestHandler):
       template_values['iseditable'] = isadmin | isowned | (item.is_editable() & loggedin)
       template_values['form'] = SecretForm(instance=item)
       template_values['secret'] = item
+      if item.author:
+        template_values['author'] = item.author.nickname().split('@')[0]
+      if item.editor:
+        template_values['editor'] = item.editor.nickname().split('@')[0]
     else:
       template_values['form'] = SecretForm()
       template_values['iseditable'] = loggedin

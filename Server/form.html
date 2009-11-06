@@ -37,12 +37,12 @@ This secret will be editable by anyone for 3 days.<br>
 </span><br>
 </p>
 <div class="byline">
-	{% if secret.author %}
-Created by {{secret.author.nickname}} on {{secret.created_at|date:"M d"}}<br>
+	{% if author %}
+Created by {{author}} on {{secret.created_at|date:"M d"}}<br>
 {% endif%}
 
-{% if secret.editor %}
-Edited by {{secret.editor.nickname}} on {{secret.updated_at|date:"M d"}}<br>
+{% if editor %}
+Edited by {{editor}} on {{secret.updated_at|date:"M d"}}<br>
 {% endif%}
 </div>
 {% if dups %}
