@@ -58,9 +58,9 @@
 				{% if secret.minversion %}<!-- {#and preference.minversion.length#} -->({{ secret.minversion }}){% endif %}
 				</a>
 			</td>
-			<td width="32">
+			<!--<td width="32">
 				<img class="icon" src="{{secret.display_icon}}">
-			</td>
+			</td>-->
 			<td valign="top">
 				<a href="edit?id={{secret.key.id}}" style="{% if secret.hidden or secret.is_broken %}color: gray;{% endif %}">{{secret.title}}</a>
 				<br>

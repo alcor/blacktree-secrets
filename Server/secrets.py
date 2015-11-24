@@ -63,7 +63,7 @@ class Secret(search.SearchableModel):
   source_url = db.StringProperty()
   values = db.StringProperty(multiline=True)
   description = db.StringProperty(multiline=True)
-  notes = db.StringProperty(multiline=True)
+  notes = db.TextProperty()
   
   hidden = db.BooleanProperty()
   verified = db.BooleanProperty()
@@ -181,8 +181,8 @@ class PlistSecret(webapp.RequestHandler):
       secrets = Secret.all()
       secrets.filter('deleted ==', False)
       count = 0;
-      for i in range (0, 4):
-        some_secrets = secrets.fetch(200, 200*i)
+      for i in range (0, 8):
+        some_secrets = secrets.fetch(800, 800*i)
         this_count = len(some_secrets)
         count += this_count
         if this_count == 0:
@@ -494,7 +494,7 @@ def main():
                                         # ('/backup', Backup),
                                         ('/flush', FlushSecrets),
                                         ('/', MainPage)],
-                                       debug=True)
+                                       debug=False	)
   wsgiref.handlers.CGIHandler().run(application)
 
 if __name__ == "__main__":
