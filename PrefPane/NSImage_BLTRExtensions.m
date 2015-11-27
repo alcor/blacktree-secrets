@@ -55,16 +55,16 @@ static inline int get_bit(unsigned char *arr, unsigned long bit_num)
 - (NSImage *)imageWithAlphaComponent:(float)alpha {
   // BOOL wasFlipped = [self isFlipped];
   
-  NSImage *fadedImage = [[NSImage alloc] initWithData:[self TIFFRepresentation]];
-  [fadedImage setCacheMode:NSImageCacheNever];
+  NSImage *fadedImage = [[NSImage alloc] initWithData:self.TIFFRepresentation];
+  fadedImage.cacheMode = NSImageCacheNever;
   
-  NSEnumerator *repEnum = [[fadedImage representations] objectEnumerator];
+  NSEnumerator *repEnum = [fadedImage.representations objectEnumerator];
   NSImageRep *rep = nil;
   while((rep = [repEnum nextObject]) ) {
     [fadedImage lockFocusOnRepresentation:rep];
 		
 		[[NSColor colorWithDeviceWhite:0.0 alpha:0.5] set];
-    NSRectFillUsingOperation(rectFromSize([rep size]), NSCompositeDestinationIn);
+    NSRectFillUsingOperation(rectFromSize(rep.size), NSCompositeDestinationIn);
     
     [fadedImage unlockFocus];
   }
@@ -89,8 +89,8 @@ static inline int get_bit(unsigned char *arr, unsigned long bit_num)
 }
 - (NSSize) adjustSizeToDrawAtSize:(NSSize)theSize {
   NSImageRep *bestRep = [self bestRepresentationForSize:theSize];
-  [self setSize:[bestRep size]];
-  return [bestRep size];
+  self.size = bestRep.size;
+  return bestRep.size;
 }
 - (NSImageRep *)bestRepresentationForSize:(NSSize)theSize {
 	NSImageRep *bestRep = [self representationOfSize:theSize];
@@ -103,7 +103,7 @@ static inline int get_bit(unsigned char *arr, unsigned long bit_num)
 	} else {
 		//	QSLog(@"getRex? %f", theSize.width);
 	}
-  NSArray *reps = [self representations];
+  NSArray *reps = self.representations;
   // if (theSize.width == theSize.height) { 
 	// ***warning   * handle other sizes
   float repDistance = 65536.0;  
@@ -111,8 +111,8 @@ static inline int get_bit(unsigned char *arr, unsigned long bit_num)
   NSImageRep *thisRep;
   float thisDistance;
   int i;
-  for (i = 0; i<(int) [reps count]; i++) {
-    thisRep = [reps objectAtIndex:i];
+  for (i = 0; i<(int) reps.count; i++) {
+    thisRep = reps[i];
     thisDistance = MIN(theSize.width-[thisRep size] .width, theSize.height-[thisRep size] .height);  
 		
 		if (repDistance<0 && thisDistance>0) continue;
@@ -132,11 +132,11 @@ static inline int get_bit(unsigned char *arr, unsigned long bit_num)
 }
 
 - (NSImageRep *)representationOfSize:(NSSize)theSize {
-  NSArray *reps = [self representations];
+  NSArray *reps = self.representations;
   int i;
-  for (i = 0; i<(int) [reps count]; i++)
-    if (NSEqualSizes([[reps objectAtIndex:i] size] , theSize) )
-      return [reps objectAtIndex:i];
+  for (i = 0; i<(int) reps.count; i++)
+    if (NSEqualSizes([reps[i] size] , theSize) )
+      return reps[i];
   return nil;
 }
 
@@ -161,7 +161,7 @@ static inline int get_bit(unsigned char *arr, unsigned long bit_num)
   
 	NSBitmapImageRep *bestRep = (NSBitmapImageRep *)[self bestRepresentationForSize:newSize];
   if ([bestRep respondsToSelector:@selector(CGImage)]) {
-    CGImageRef imageRef = [bestRep CGImage];
+    CGImageRef imageRef = bestRep.CGImage;
   
     CGColorSpaceRef cspace        = CGColorSpaceCreateDeviceRGB();    
     CGContextRef    smallContext        = CGBitmapContextCreate(NULL,
@@ -175,7 +175,7 @@ static inline int get_bit(unsigned char *arr, unsigned long bit_num)
     
     if (!smallContext) return NO;
     
-    NSRect drawRect = fitRectInRect(rectFromSize([bestRep size]), rectFromSize(newSize), NO);
+    NSRect drawRect = fitRectInRect(rectFromSize(bestRep.size), rectFromSize(newSize), NO);
     
         CGContextDrawImage(smallContext, NSRectToCGRect(drawRect), imageRef);
     
@@ -244,10 +244,10 @@ static inline int get_bit(unsigned char *arr, unsigned long bit_num)
 }
 
 - (void)removeRepresentationsLargerThanSize:(NSSize)size {
-  NSEnumerator *e = [[self representations] reverseObjectEnumerator];
+  NSEnumerator *e = [self.representations reverseObjectEnumerator];
   NSImageRep *thisRep;
 	while((thisRep = [e nextObject]) ) {
-		if ([thisRep size] .width>size.width && [thisRep size] .height>size.height)
+		if (thisRep.size .width>size.width && thisRep.size .height>size.height)
 			[self removeRepresentation:thisRep];
   } 	
 }
@@ -261,7 +261,7 @@ static inline int get_bit(unsigned char *arr, unsigned long bit_num)
 
 - (BOOL)shrinkToSize:(NSSize)newSize {
 	[self createRepresentationOfSize:newSize];
-	[self setSize:newSize];
+	self.size = newSize;
 	[self removeRepresentationsLargerThanSize:newSize];
 	return YES;
 }
@@ -274,26 +274,26 @@ static inline int get_bit(unsigned char *arr, unsigned long bit_num)
 - (NSRect) usedRect {
 	
 	
-  NSData* tiffData = [self TIFFRepresentation];
+  NSData* tiffData = self.TIFFRepresentation;
 	NSBitmapImageRep *bitmap = [[NSBitmapImageRep alloc] initWithData:tiffData];
 	
   
-  if (![bitmap hasAlpha]) return NSMakeRect(0, 0, [bitmap size] .height, [bitmap size] .width);
+  if (!bitmap.alpha) return NSMakeRect(0, 0, bitmap.size .height, bitmap.size .width);
 	
-  int minX = [bitmap pixelsWide];
-  int minY = [bitmap pixelsHigh];
+  int minX = bitmap.pixelsWide;
+  int minY = bitmap.pixelsHigh;
   int maxX = 0;
   int maxY = 0;
 	
 	
   int i, j;
-  unsigned char* pixels = [bitmap bitmapData];
+  unsigned char* pixels = bitmap.bitmapData;
 	
   //int alpha;
-  for(i = 0; i<[bitmap pixelsWide]; i++) {
-    for (j = 0; j<[bitmap pixelsHigh]; j++) {
+  for(i = 0; i<bitmap.pixelsWide; i++) {
+    for (j = 0; j<bitmap.pixelsHigh; j++) {
       //alpha = *(pixels + i*[bitmap pixelsWide] *[bitmap samplesPerPixel] + j*[bitmapsamplesPerPixel] + 3);
-      if (*(pixels + j*[bitmap pixelsWide] *[bitmap samplesPerPixel] + i*[bitmap samplesPerPixel] + 3) ) { //This pixel is not transparent! Readjust bounds.
+      if (*(pixels + j*bitmap.pixelsWide *bitmap.samplesPerPixel + i*bitmap.samplesPerPixel + 3) ) { //This pixel is not transparent! Readjust bounds.
         //QSLog(@"Pixel Occupied: (%d, %d) ", i, j);
         minX = MIN(minX, i);
         maxX = MAX(maxX, i);
@@ -305,21 +305,21 @@ static inline int get_bit(unsigned char *arr, unsigned long bit_num)
   }
   //flip y!!
 	//QSLog(@"%d, %d, %d, %d", minX, minY, maxX, maxY);
-  return NSMakeRect(minX, [bitmap pixelsHigh] -maxY-1, maxX-minX+1, maxY-minY+1);
+  return NSMakeRect(minX, bitmap.pixelsHigh -maxY-1, maxX-minX+1, maxY-minY+1);
 }
 
 - (NSImage *)scaleImageToSize:(NSSize)newSize trim:(BOOL)trim expand:(BOOL)expand scaleUp:(BOOL)scaleUp {
-  NSRect sourceRect = (trim?[self usedRect] :rectFromSize([self size]) );
+  NSRect sourceRect = (trim?[self usedRect] :rectFromSize(self.size) );
   NSRect drawRect = (scaleUp || NSHeight(sourceRect) >newSize.height || NSWidth(sourceRect)>newSize.width ? sizeRectInRect(sourceRect, rectFromSize(newSize), expand) : NSMakeRect(0, 0, NSWidth(sourceRect), NSHeight(sourceRect)));
   NSImage *tempImage = [[NSImage alloc] initWithSize:NSMakeSize(NSWidth(drawRect), NSHeight(drawRect) )];
   [tempImage lockFocus];
   {
-    [[NSGraphicsContext currentContext] setImageInterpolation:NSImageInterpolationHigh];
+    [NSGraphicsContext currentContext].imageInterpolation = NSImageInterpolationHigh;
     [self drawInRect:drawRect fromRect:sourceRect operation:NSCompositeSourceOver fraction:1];
   }
   [tempImage unlockFocus];
   //QSLog(@"%@", tempImage);
-  return [[NSImage alloc] initWithData:[tempImage TIFFRepresentation]]; //*** UGH! why do I have to do this to commit the changes?;
+  return [[NSImage alloc] initWithData:tempImage.TIFFRepresentation]; //*** UGH! why do I have to do this to commit the changes?;
 }
 @end
 
@@ -327,10 +327,10 @@ static inline int get_bit(unsigned char *arr, unsigned long bit_num)
 - (NSColor *)averageColor {
 	NSBitmapImageRep *rep = (NSBitmapImageRep *)[self bestRepresentationForDevice:nil]; 	
 	if (![rep isKindOfClass:[NSBitmapImageRep class]]) return nil;
-	unsigned char *pixels = [rep bitmapData];
+	unsigned char *pixels = rep.bitmapData;
 	
 	int red = 0, blue = 0, green = 0; //, alpha = 0;
-	int n = [rep size] .width*[rep size] .height;
+	int n = rep.size .width*rep.size .height;
 	int i = 0;
 	for (i = 0; i < n; i++) {
 		//	pixels[(j*imageWidthInPixels+i) *bitsPerPixel+channel]

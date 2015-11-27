@@ -10,8 +10,8 @@
 
 
 @interface NSSortDescriptor (QSConvenience)
-+ (id)descriptorWithKey:(NSString *)key ascending:(BOOL)ascending;
-+ (id)descriptorWithKey:(NSString *)key ascending:(BOOL)ascending selector:(SEL)selector;
++ (instancetype)descriptorWithKey:(NSString *)key ascending:(BOOL)ascending;
++ (instancetype)descriptorWithKey:(NSString *)key ascending:(BOOL)ascending selector:(SEL)selector;
 + (NSArray *)descriptorArrayWithKey:(NSString *)key ascending:(BOOL)ascending;
 + (NSArray *)descriptorArrayWithKey:(NSString *)key ascending:(BOOL)ascending selector:(SEL)selector;
 @end
