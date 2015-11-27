@@ -81,13 +81,10 @@ NSComparisonResult versionCompare(NSString *a, NSString *b, BOOL greaterthan) {
 }
 
 - (IBAction)openEntry:(id)sender {
-	int row = entriesTable.selectedRow;
-	id thisInfo = entriesController.arrangedObjects[row]; 	
-	NSString *idNumber = thisInfo[@"id"];
-	NSString *urlString = [NSString stringWithFormat:kSecretsEditFormatString, idNumber];
-	NSURL *url = [NSURL URLWithString:urlString];
-	[[NSWorkspace sharedWorkspace] openURL:url];
-	
+	NSAlert *alert = [[NSAlert alloc] init];
+	alert.messageText = @"Web access disabled";
+	alert.informativeText = @"Access to individual secrets is disabled for the moment. Sorry!";
+	[alert beginSheetModalForWindow:self.mainView.window modalDelegate:self didEndSelector:NULL contextInfo:NULL];
 }
 
 -(OSStatus)quitApplicationWithBundleID:(NSString *)bundleID {
