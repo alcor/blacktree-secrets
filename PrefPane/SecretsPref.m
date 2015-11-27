@@ -10,12 +10,12 @@
 #import "NSImage_BLTRExtensions.h"
 
 #define foreach(x, y) id x; NSEnumerator *rwEnum = [y objectEnumerator]; while(x = [rwEnum nextObject])
-#define kSecretsLiveURL [NSURL URLWithString:@"http://secrets.blacktree.com/plist"]
-#define kSecretsSafeURL [NSURL URLWithString:@"http://secrets.blacktree.com/plist"]
-#define kSecretsStableURL [NSURL URLWithString:@"http://secrets.blacktree.com/plist"]
-#define kSecretsHelpURL [NSURL URLWithString:@"http://code.google.com/p/blacktree-secrets/wiki/Help"]
+#define kSecretsLiveURL [NSURL URLWithString:@"https://raw.githubusercontent.com/alcor/blacktree-secrets/master/Data/secrets.plist"]
+#define kSecretsSafeURL [NSURL URLWithString:@"https://raw.githubusercontent.com/alcor/blacktree-secrets/master/Data/secrets.plist"]
+#define kSecretsStableURL [NSURL URLWithString:@"https://raw.githubusercontent.com/alcor/blacktree-secrets/master/Data/secrets.plist"]
+#define kSecretsHelpURL [NSURL URLWithString:@"https://github.com/alcor/blacktree-secrets/blob/wiki/Help.md#readme"]
 #define kSecretsEditFormatString @"http://secrets.blacktree.com/edit?id=%@"
-#define kSecretsSiteURL [NSURL URLWithString:@"http://secrets.blacktree.com/"]
+#define kSecretsSiteURL [NSURL URLWithString:@"https://github.com/alcor/blacktree-secrets/"]
 
 NSComparisonResult versionCompare(NSString *a, NSString *b, BOOL greaterthan) {
   NSArray *componentsA = [a componentsSeparatedByString:@"."];
