@@ -125,7 +125,6 @@ NSComparisonResult versionCompare(NSString *a, NSString *b, BOOL greaterthan) {
 	previousLaunchDate = [[NSUserDefaults standardUserDefaults] objectForKey:@"SecretsLastDownloadDate"];
 	// Show changes from the last week
 	previousLaunchDate = [[NSDate dateWithTimeIntervalSinceNow:-7*24*60*60] earlierDate:previousLaunchDate];
-	[previousLaunchDate retain];
 	[self loadInfo:nil];
 }
 
@@ -339,7 +338,7 @@ NSComparisonResult versionCompare(NSString *a, NSString *b, BOOL greaterthan) {
 	if (!self.bundles) self.bundles = [NSMutableDictionary dictionary];
 	
 	NSString *imagePath = [[NSBundle bundleForClass:[self class]] pathForImageResource:@"Application"];
-	NSImage *image = [[[NSImage alloc] initWithContentsOfFile:imagePath] autorelease];
+	NSImage *image = [[NSImage alloc] initWithContentsOfFile:imagePath];
 	
 	NSMutableDictionary *topSecrets = [NSMutableDictionary dictionaryWithObjectsAndKeys:
                                      @"Top Secrets", @"text",
@@ -572,7 +571,7 @@ NSComparisonResult versionCompare(NSString *a, NSString *b, BOOL greaterthan) {
 	return tip;
 }
 - (NSMenu *)menuForValues:(id)items {
-	NSMenu *menu = [[[NSMenu alloc] initWithTitle:@""] autorelease];
+	NSMenu *menu = [[NSMenu alloc] initWithTitle:@""];
 	
 	if ([items isKindOfClass:[NSDictionary class]]) {
 		NSArray *keys = [[items allKeys] sortedArrayUsingSelector:@selector(compare:)];
@@ -684,14 +683,14 @@ NSComparisonResult versionCompare(NSString *a, NSString *b, BOOL greaterthan) {
       || [type isEqualToString:@"boolean-neg"]  
       || [type isEqualToString:@"array-add"]
       || [type isEqualToString:@"dict-add"]) {
-		cell = [[[NSButtonCell alloc] init] autorelease];
+		cell = [[NSButtonCell alloc] init];
 		[cell setAllowsMixedState:NO];
 		[(NSButtonCell *)cell setButtonType:NSSwitchButton];
 		[cell setTitle:@""];
 	}
 	
 	if ([type isEqualToString:@"array-add-multiple"]) {
-		cell = [[[NSButtonCell alloc] init] autorelease];
+		cell = [[NSButtonCell alloc] init];
 		[(NSButtonCell *)cell setButtonType:NSOnOffButton];
 		[(NSButtonCell *)cell setBezelStyle:NSTexturedRoundedBezelStyle];
 		[cell setAlignment:NSLeftTextAlignment];
@@ -709,7 +708,7 @@ NSComparisonResult versionCompare(NSString *a, NSString *b, BOOL greaterthan) {
 	}
 	
 	if ([widget hasPrefix:@"popup"]) {
-		cell = [[[NSPopUpButtonCell alloc] init] autorelease];
+		cell = [[NSPopUpButtonCell alloc] init];
 		
 		[(NSPopUpButtonCell *)cell setBordered:YES];
 		
@@ -719,13 +718,13 @@ NSComparisonResult versionCompare(NSString *a, NSString *b, BOOL greaterthan) {
 	}
 	
 	if ([widget hasPrefix:@"combo"]) {
-		cell = [[[NSComboBoxCell alloc] init] autorelease];
+		cell = [[NSComboBoxCell alloc] init];
 		if ([[thisInfo objectForKey:@"values"] isKindOfClass:[NSArray class]])
 			[(NSComboBoxCell *)cell addItemsWithObjectValues:[thisInfo objectForKey:@"values"]];
 	}
 	
 	if (!cell) {
-		cell = [[[NSTextFieldCell alloc] init] autorelease];    
+		cell = [[NSTextFieldCell alloc] init];    
 		NSString *placeholder = [thisInfo objectForKey:@"placeholder"];
 		NSString *units = [thisInfo objectForKey:@"units"];
 		
@@ -782,8 +781,7 @@ NSComparisonResult versionCompare(NSString *a, NSString *b, BOOL greaterthan) {
 			}
 		}
 		if (!key) return nil;
-		value = (NSObject *)CFPreferencesCopyValue((CFStringRef)key, (CFStringRef)bundle, user, host);
-		[value autorelease];
+		value = (NSObject *)CFBridgingRelease(CFPreferencesCopyValue((CFStringRef)key, (CFStringRef)bundle, user, host));
 		
 		if (keypath) value = [value valueForKeyPath:keypath];
 	}
@@ -816,17 +814,16 @@ NSComparisonResult versionCompare(NSString *a, NSString *b, BOOL greaterthan) {
 	NSLog(@"defaults write %@ %@ \"%@\" \"%@\" %@ %@", user, host, bundle, key, keypath ? keypath : @"", value );
 	
 	if (keypath) { // Handle dictionary subpath 
-		NSDictionary *dictValue = (NSDictionary *)CFPreferencesCopyValue((CFStringRef)key, (CFStringRef)bundle, user, host);
-		[dictValue autorelease];
+		NSDictionary *dictValue = (NSDictionary *)CFBridgingRelease(CFPreferencesCopyValue((CFStringRef)key, (CFStringRef)bundle, user, host));
 		if (![dictValue isKindOfClass:[NSDictionary class]]) dictValue = nil;
 		
-		dictValue = [[dictValue mutableCopy] autorelease];
+		dictValue = [dictValue mutableCopy];
 		if (!dictValue) dictValue = [NSMutableDictionary dictionary];
 		[dictValue setValue:value forKeyPath:keypath];
 		value = dictValue;
 	}
 	
-	CFPreferencesSetValue((CFStringRef) key, value, (CFStringRef)bundle, user, host);
+	CFPreferencesSetValue((CFStringRef) key, (__bridge CFPropertyListRef)(value), (CFStringRef)bundle, user, host);
 	CFPreferencesSynchronize((CFStringRef) bundle, user, host);  
 	
 	if (value)
@@ -916,7 +913,7 @@ NSComparisonResult versionCompare(NSString *a, NSString *b, BOOL greaterthan) {
       || [[thisInfo objectForKey:@"datatype"] isEqualToString:@"array-add-multiple"]) {
 		id toggleValue = [thisInfo objectForKey:@"values"];
 		
-		NSMutableArray  *array = [[oldValue mutableCopy] autorelease];
+		NSMutableArray  *array = [oldValue mutableCopy];
 		
 		if ([value boolValue]) {
 			if (!array) array = [NSMutableArray array];
@@ -933,7 +930,7 @@ NSComparisonResult versionCompare(NSString *a, NSString *b, BOOL greaterthan) {
 	if ([[thisInfo objectForKey:@"datatype"] isEqualToString:@"dict-add"]) {
 		NSDictionary *toggleValue = [thisInfo objectForKey:@"values"];
 		
-		NSMutableDictionary  *dict = [[oldValue mutableCopy] autorelease];
+		NSMutableDictionary  *dict = [oldValue mutableCopy];
 		if ([value boolValue]) {
 			if (!dict) dict = [NSMutableDictionary dictionary];
 			[dict addEntriesFromDictionary:toggleValue];
@@ -1079,8 +1076,7 @@ NSComparisonResult versionCompare(NSString *a, NSString *b, BOOL greaterthan) {
 
 - (void)setSearchPredicate:(NSPredicate *)newSearchPredicate {
 	if (searchPredicate != newSearchPredicate) {
-		[searchPredicate autorelease];
-		searchPredicate = [newSearchPredicate retain];
+		searchPredicate = newSearchPredicate;
 		[self updateEntries];
 	}
 }
@@ -1232,7 +1228,6 @@ NSComparisonResult versionCompare(NSString *a, NSString *b, BOOL greaterthan) {
 		NSImage *secretsIcon = [[NSImage alloc] initWithContentsOfFile:[bundle pathForResource:@"Secrets" ofType:@"icns"]];
 		[showVersion setIcon:secretsIcon];
 		[showVersion runModal];
-		[secretsIcon release];
 		return;
 	}
 	[[NSWorkspace sharedWorkspace] openURL:kSecretsHelpURL];
@@ -1270,7 +1265,7 @@ NSComparisonResult versionCompare(NSString *a, NSString *b, BOOL greaterthan) {
 		
 		[updateAlert beginSheetModalForWindow:[[self mainView] window]
                             modalDelegate:self didEndSelector:@selector(alertDidEnd:returnCode:contextInfo:)
-                              contextInfo:[version retain]];
+                              contextInfo:CFBridgingRetain(version)];
 		
 	}
 	[fetchData setLength:0];
@@ -1291,12 +1286,5 @@ NSComparisonResult versionCompare(NSString *a, NSString *b, BOOL greaterthan) {
 	[fetchData appendData:data];
 }
 
-- (void)dealloc
-{
-	[self setCategories: nil];
-	[self setEntries: nil];
-	[self setCurrentEntry: nil];
-	[super dealloc];
-}
 
 @end
